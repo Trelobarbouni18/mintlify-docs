@@ -1,0 +1,142 @@
+---
+title: "GET /brand"
+description: "Extract brand colors, logos, fonts, images, and social media links from any website. Costs 2 credits."
+openapi: "GET /brand"
+---
+
+## Overview
+
+`/brand` uses headless Chrome to visit a page and extract a comprehensive set of brand assets:
+
+- **Colors** — extracted from the logo via pixel analysis, optionally from the screenshot and source code
+- **Logos** — primary and secondary candidates scored by confidence
+- **Fonts** — font family names including Google Fonts and Typekit
+- **Images** — OG image, Twitter card image, screenshot
+- **Social links** — Twitter/X, LinkedIn, GitHub, Facebook, Instagram, YouTube
+
+## Color extraction options
+
+| Parameter | What it extracts |
+|---|---|
+| *(default)* | Logo colors only |
+| `screenshotColors=6` | + N dominant colors from the page screenshot |
+| `css=true` | + Colors defined in CSS stylesheets |
+| `html=true` | + Colors defined in HTML attributes |
+| `javascript=true` | + Colors defined in JavaScript source |
+
+You can combine any of these.
+
+## Example requests
+
+<CodeGroup>
+
+```bash Default
+curl "https://api.prefetch.io/brand?url=https://stripe.com" \
+  -H "X-API-Key: $PREFETCH_API_KEY"
+```
+
+```bash With screenshot colors
+curl "https://api.prefetch.io/brand?url=https://stripe.com&screenshotColors=6" \
+  -H "X-API-Key: $PREFETCH_API_KEY"
+```
+
+```bash Full color extraction
+curl "https://api.prefetch.io/brand?url=https://stripe.com&screenshotColors=8&css=true&html=true" \
+  -H "X-API-Key: $PREFETCH_API_KEY"
+```
+
+```javascript Node.js
+const res = await fetch(
+  "https://api.prefetch.io/brand?url=https://stripe.com&screenshotColors=6",
+  { headers: { "X-API-Key": process.env.PREFETCH_API_KEY } }
+);
+const { success, data } = await res.json();
+console.log(data.colors.brand_colors[0].hex); // "#635BFF"
+console.log(data.logos.primary.url);
+console.log(data.fonts.families);
+```
+
+</CodeGroup>
+
+## Example response
+
+```json
+{
+  "success": true,
+  "data": {
+    "domain": "stripe.com",
+    "url": "https://stripe.com",
+    "colors": {
+      "brand_colors": [
+        {
+          "color": "rgb(99,91,255)",
+          "hex": "#635BFF",
+          "name": "blueviolet",
+          "percentage": 38,
+          "source": "logo"
+        },
+        {
+          "color": "rgb(0,212,255)",
+          "hex": "#00D4FF",
+          "name": "cyan",
+          "percentage": 24,
+          "source": "logo"
+        }
+      ],
+      "screenshot_colors": [
+        {
+          "color": "rgb(255,255,255)",
+          "hex": "#FFFFFF",
+          "name": "white",
+          "percentage": 61,
+          "source": "screenshot"
+        }
+      ]
+    },
+    "fonts": {
+      "families": ["Sohne", "Inter"],
+      "google_fonts": [],
+      "typekit": []
+    },
+    "logos": {
+      "primary": {
+        "url": "https://assets.prefetch.io/logos/stripe-logo.svg",
+        "source": "jsonld",
+        "score": 185,
+        "isSvg": true
+      },
+      "secondary": [],
+      "favicon_url": "https://stripe.com/favicon.ico",
+      "icon_url": null,
+      "apple_touch_icon": null
+    },
+    "images": {
+      "og_image": "https://stripe.com/img/v3/home/social.png",
+      "twitter_image": "https://stripe.com/img/v3/home/social.png",
+      "assets": [],
+      "screenshot_url": "https://assets.prefetch.io/screenshots/stripe-1440x900.jpg",
+      "screenshot_colors": [
+        {
+          "color": "rgb(255,255,255)",
+          "hex": "#FFFFFF",
+          "name": "white",
+          "percentage": 61,
+          "source": "screenshot"
+        }
+      ]
+    },
+    "social_links": {
+      "twitter": "https://twitter.com/stripe",
+      "linkedin": "https://linkedin.com/company/stripe",
+      "github": "https://github.com/stripe",
+      "facebook": null,
+      "instagram": null,
+      "youtube": null
+    }
+  },
+  "meta": {
+    "requestId": "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
+    "durationMs": 4130
+  }
+}
+```

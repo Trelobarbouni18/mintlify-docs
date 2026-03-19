@@ -1,0 +1,83 @@
+---
+title: "Rate limits"
+description: "Understanding global and per-key rate limits in the Prefetch API."
+icon: "gauge-high"
+---
+
+## Overview
+
+Prefetch API enforces two independent rate limits:
+
+1. **Global rate limit** — per IP address, applies to all requests
+2. **Per-key rate limit** — per API key, configurable per key
+
+Both use a sliding 1-minute window. When either limit is exceeded, you receive HTTP `429 Too Many Requests`.
+
+## Global rate limit
+
+**300 requests per minute per IP address.**
+
+This limit applies before authentication and cannot be configured. It protects the infrastructure from abuse.
+
+## Per-key rate limit
+
+Each API key has a `rate_limit_rpm` (requests per minute) field. When a key's request rate exceeds this value within a 60-second window, requests fail with:
+
+```json
+{
+  "success": false,
+  "error": "Rate limit exceeded for this API key",
+  "meta": { ... }
+}
+```
+
+Contact support or manage your key's rate limit from the [dashboard](https://dashboard.prefetch.io).
+
+## Handling 429 responses
+
+When you receive a `429`, implement exponential backoff before retrying:
+
+<CodeGroup>
+
+```javascript Node.js
+async function fetchWithRetry(url, options, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const res = await fetch(url, options);
+
+    if (res.status !== 429) {
+      return res;
+    }
+
+    const backoffMs = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+    await new Promise((resolve) => setTimeout(resolve, backoffMs));
+  }
+
+  throw new Error("Max retries exceeded");
+}
+```
+
+```python Python
+import time
+import requests
+
+def fetch_with_retry(url, params, headers, max_retries=3):
+    for attempt in range(max_retries):
+        r = requests.get(url, params=params, headers=headers)
+
+        if r.status_code != 429:
+            return r
+
+        backoff = 2 ** attempt  # 1s, 2s, 4s
+        time.sleep(backoff)
+
+    raise Exception("Max retries exceeded")
+```
+
+</CodeGroup>
+
+## Tips for staying within limits
+
+- **Batch wisely** — use `/enrich` instead of separate `/brand` + `/company` + `/classify` calls to reduce request count
+- **Cache responses** — most brand/company data is stable; cache it for hours or days
+- **Deduplicate** — avoid re-fetching the same domain multiple times in a short window
+- **Queue large jobs** — if processing many URLs, space requests out over time rather than sending all at once

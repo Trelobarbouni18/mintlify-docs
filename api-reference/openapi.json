@@ -1,94 +1,530 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "title": "Prefetch API",
+    "description": "A high-performance web scraping and data extraction API. Extract brand assets, company information, IAB classifications, and screenshots from any website using headless Chrome.",
+    "version": "1.0.0",
+    "contact": {
+      "email": "support@prefetch.io"
+    }
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://api.prefetch.io",
+      "description": "Production"
     }
   ],
   "security": [
     {
-      "bearerAuth": []
+      "apiKey": []
     }
   ],
-  "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
+  "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Your Prefetch API key. Obtain one from the dashboard."
+      }
+    },
+    "schemas": {
+      "Meta": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for this request.",
+            "example": "a3f2c1d4-7b6e-4f2a-9c1d-8e3f2a1b4c5d"
+          },
+          "durationMs": {
+            "type": "integer",
+            "description": "Time taken to process the request in milliseconds.",
+            "example": 1842
+          }
+        },
+        "required": ["requestId", "durationMs"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [false]
+          },
+          "error": {
+            "type": "string",
+            "description": "Human-readable error message.",
+            "example": "Credit limit exceeded"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": ["success", "error", "meta"]
+      },
+      "Color": {
+        "type": "object",
+        "properties": {
+          "color": {
+            "type": "string",
+            "description": "RGB color string.",
+            "example": "rgb(99,91,255)"
+          },
+          "hex": {
+            "type": "string",
+            "description": "Hex color code.",
+            "example": "#635BFF"
+          },
+          "name": {
+            "type": "string",
+            "description": "Closest named CSS color.",
+            "example": "blueviolet"
+          },
+          "percentage": {
+            "type": "number",
+            "description": "Percentage this color represents in the analyzed source.",
+            "example": 38
+          },
+          "source": {
+            "type": "string",
+            "description": "Where this color was extracted from.",
+            "enum": ["logo", "screenshot", "css", "html", "javascript"],
+            "example": "logo"
+          }
+        },
+        "required": ["color", "hex", "name", "percentage", "source"]
+      },
+      "Logo": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public URL to the logo asset stored in cloud storage.",
+            "example": "https://assets.prefetch.io/logos/stripe-logo.svg"
+          },
+          "source": {
+            "type": "string",
+            "description": "Where the logo was discovered.",
+            "example": "jsonld"
+          },
+          "score": {
+            "type": "integer",
+            "description": "Confidence score for logo selection.",
+            "example": 185
+          },
+          "isSvg": {
+            "type": "boolean",
+            "description": "Whether the logo is an SVG.",
+            "example": true
+          }
+        }
+      },
+      "BrandColors": {
+        "type": "object",
+        "properties": {
+          "brand_colors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Color" },
+            "description": "Colors extracted from the logo and brand assets."
+          },
+          "screenshot_colors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Color" },
+            "description": "Dominant colors extracted from the page screenshot. Present only when `screenshotColors` parameter is provided."
+          },
+          "code_colors": {
+            "type": "object",
+            "description": "Colors extracted from CSS, HTML, and/or JavaScript. Present only when the corresponding parameters are true.",
+            "properties": {
+              "css": { "type": "array", "items": { "type": "string" } },
+              "html": { "type": "array", "items": { "type": "string" } },
+              "javascript": { "type": "array", "items": { "type": "string" } }
             }
           }
-        ],
+        }
+      },
+      "BrandFonts": {
+        "type": "object",
+        "properties": {
+          "families": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Font family names detected on the page.",
+            "example": ["Sohne", "Inter"]
+          },
+          "google_fonts": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Google Fonts detected on the page."
+          },
+          "typekit": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Adobe Typekit fonts detected on the page."
+          }
+        }
+      },
+      "BrandLogos": {
+        "type": "object",
+        "properties": {
+          "primary": {
+            "$ref": "#/components/schemas/Logo",
+            "description": "Best candidate for the primary logo."
+          },
+          "secondary": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Logo" },
+            "description": "Other logo candidates found on the page."
+          },
+          "favicon_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the site favicon.",
+            "example": "https://stripe.com/favicon.ico"
+          },
+          "icon_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the site icon."
+          },
+          "apple_touch_icon": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the Apple Touch Icon."
+          }
+        }
+      },
+      "BrandImages": {
+        "type": "object",
+        "properties": {
+          "og_image": {
+            "type": "string",
+            "format": "uri",
+            "description": "OpenGraph image URL."
+          },
+          "twitter_image": {
+            "type": "string",
+            "format": "uri",
+            "description": "Twitter card image URL."
+          },
+          "assets": {
+            "type": "array",
+            "items": { "type": "string", "format": "uri" },
+            "description": "Additional notable image assets found on the page."
+          },
+          "screenshot_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the page screenshot stored in cloud storage."
+          },
+          "screenshot_colors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Color" },
+            "description": "Dominant colors extracted from the screenshot. Present only when `screenshotColors` parameter is provided."
+          }
+        }
+      },
+      "SocialLinks": {
+        "type": "object",
+        "properties": {
+          "twitter": { "type": "string", "format": "uri", "nullable": true },
+          "linkedin": { "type": "string", "format": "uri", "nullable": true },
+          "github": { "type": "string", "format": "uri", "nullable": true },
+          "facebook": { "type": "string", "format": "uri", "nullable": true },
+          "instagram": { "type": "string", "format": "uri", "nullable": true },
+          "youtube": { "type": "string", "format": "uri", "nullable": true }
+        }
+      },
+      "BrandData": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "description": "Normalized domain extracted from the URL.",
+            "example": "stripe.com"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL that was scraped.",
+            "example": "https://stripe.com"
+          },
+          "colors": { "$ref": "#/components/schemas/BrandColors" },
+          "fonts": { "$ref": "#/components/schemas/BrandFonts" },
+          "logos": { "$ref": "#/components/schemas/BrandLogos" },
+          "images": { "$ref": "#/components/schemas/BrandImages" },
+          "social_links": { "$ref": "#/components/schemas/SocialLinks" }
+        },
+        "required": ["domain", "url", "colors", "fonts", "logos", "images", "social_links"]
+      },
+      "ClassifyData": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL that was classified.",
+            "example": "https://stripe.com"
+          },
+          "iab_id": {
+            "type": "string",
+            "description": "IAB subcategory ID.",
+            "example": "IAB13-11"
+          },
+          "iab_parent_id": {
+            "type": "string",
+            "description": "IAB parent category ID.",
+            "example": "IAB13"
+          },
+          "category": {
+            "type": "string",
+            "description": "IAB parent category name.",
+            "example": "Personal Finance"
+          },
+          "subcategory": {
+            "type": "string",
+            "description": "IAB subcategory name.",
+            "example": "Financial Planning"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of the website.",
+            "example": "Stripe provides payment processing infrastructure for internet businesses."
+          }
+        },
+        "required": ["url", "iab_id", "iab_parent_id", "category", "subcategory", "description"]
+      },
+      "CompanyInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Legal entity name of the company.",
+            "example": "Stripe, Inc."
+          },
+          "emails": {
+            "type": "array",
+            "items": { "type": "string", "format": "email" },
+            "description": "Contact email addresses found on the site.",
+            "example": ["support@stripe.com"]
+          },
+          "addresses": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Physical addresses found on the site.",
+            "example": ["354 Oyster Point Blvd, South San Francisco, CA 94080"]
+          },
+          "sources": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Where the data was extracted from.",
+            "example": ["jsonld", "footer"]
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Extraction confidence score between 0 and 1.",
+            "example": 0.92
+          }
+        },
+        "required": ["name", "emails", "addresses", "sources", "confidence"]
+      },
+      "CompanyData": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "description": "Normalized domain.",
+            "example": "stripe.com"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL that was scraped.",
+            "example": "https://stripe.com"
+          },
+          "company": { "$ref": "#/components/schemas/CompanyInfo" }
+        },
+        "required": ["domain", "url", "company"]
+      },
+      "ScreenshotData": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL that was screenshotted.",
+            "example": "https://stripe.com"
+          },
+          "screenshot_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public URL to the screenshot stored in cloud storage.",
+            "example": "https://assets.prefetch.io/screenshots/stripe-1440x900.jpg"
+          },
+          "viewport": {
+            "type": "object",
+            "properties": {
+              "width": { "type": "integer", "example": 1440 },
+              "height": { "type": "integer", "example": 900 }
+            },
+            "required": ["width", "height"]
+          },
+          "format": {
+            "type": "string",
+            "enum": ["jpeg", "png", "webp"],
+            "description": "Image format of the screenshot.",
+            "example": "jpeg"
+          },
+          "full_page": {
+            "type": "boolean",
+            "description": "Whether the full scrollable height was captured.",
+            "example": false
+          },
+          "captured_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of when the screenshot was taken.",
+            "example": "2026-03-19T14:22:05.000Z"
+          }
+        },
+        "required": ["url", "screenshot_url", "viewport", "format", "full_page", "captured_at"]
+      },
+      "EnrichData": {
+        "type": "object",
+        "description": "Combined output from brand, company, and classify extraction.",
+        "properties": {
+          "domain": { "type": "string", "example": "stripe.com" },
+          "url": { "type": "string", "format": "uri", "example": "https://stripe.com" },
+          "colors": { "$ref": "#/components/schemas/BrandColors" },
+          "fonts": { "$ref": "#/components/schemas/BrandFonts" },
+          "logos": { "$ref": "#/components/schemas/BrandLogos" },
+          "images": { "$ref": "#/components/schemas/BrandImages" },
+          "social_links": { "$ref": "#/components/schemas/SocialLinks" },
+          "company": { "$ref": "#/components/schemas/CompanyInfo" },
+          "classification": { "$ref": "#/components/schemas/ClassifyData" }
+        },
+        "required": ["domain", "url", "colors", "fonts", "logos", "images", "social_links", "company", "classification"]
+      }
+    },
+    "parameters": {
+      "url": {
+        "name": "url",
+        "in": "query",
+        "required": true,
+        "description": "The website URL to process. `http://` is prepended automatically if no protocol is provided. Maximum 2048 characters.",
+        "schema": {
+          "type": "string",
+          "example": "https://stripe.com"
+        }
+      },
+      "screenshotWidth": {
+        "name": "width",
+        "in": "query",
+        "required": false,
+        "description": "Viewport width in pixels. Range: 320–5000. Default: 1440.",
+        "schema": {
+          "type": "integer",
+          "minimum": 320,
+          "maximum": 5000,
+          "default": 1440
+        }
+      },
+      "screenshotHeight": {
+        "name": "height",
+        "in": "query",
+        "required": false,
+        "description": "Viewport height in pixels. Range: 320–5000. Default: 900.",
+        "schema": {
+          "type": "integer",
+          "minimum": 320,
+          "maximum": 5000,
+          "default": 900
+        }
+      },
+      "screenshotFormat": {
+        "name": "format",
+        "in": "query",
+        "required": false,
+        "description": "Image format. Default: `jpeg`.",
+        "schema": {
+          "type": "string",
+          "enum": ["jpeg", "png", "webp"],
+          "default": "jpeg"
+        }
+      },
+      "screenshotFullPage": {
+        "name": "full_page",
+        "in": "query",
+        "required": false,
+        "description": "Capture full scrollable page height. Default: `false`.",
+        "schema": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Liveness check",
+        "description": "Returns HTTP 200 if the server process is alive. No authentication required. Use as a liveness probe in Kubernetes or other orchestration systems.",
+        "security": [],
+        "tags": ["Health"],
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Server is alive.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "enum": ["ok"], "example": "ok" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "operationId": "getReady",
+        "summary": "Readiness check",
+        "description": "Returns HTTP 200 if the server is ready to handle requests (Redis connection is healthy). Returns HTTP 503 if Redis is unavailable. Use as a readiness probe.",
+        "security": [],
+        "tags": ["Health"],
+        "responses": {
+          "200": {
+            "description": "Server is ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "enum": ["ok"], "example": "ok" }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Unexpected error",
+          "503": {
+            "description": "Server is not ready (Redis unavailable).",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "enum": ["error"] },
+                    "message": { "type": "string", "example": "Redis connection failed" }
+                  }
                 }
               }
             }
@@ -96,122 +532,306 @@
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
+    "/classify": {
+      "get": {
+        "operationId": "classifyUrl",
+        "summary": "Classify a website",
+        "description": "Classifies a website into an IAB content taxonomy category with a human-readable description. Costs **1 credit**.",
+        "tags": ["Endpoints"],
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
+          { "$ref": "#/components/parameters/url" }
         ],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
+          "200": {
+            "description": "Classification result.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/ClassifyData" },
+                    "meta": { "$ref": "#/components/schemas/Meta" }
+                  },
+                  "required": ["success", "data", "meta"]
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "url": "https://stripe.com",
+                    "iab_id": "IAB13-11",
+                    "iab_parent_id": "IAB13",
+                    "category": "Personal Finance",
+                    "subcategory": "Financial Planning",
+                    "description": "Stripe provides payment processing infrastructure for internet businesses."
+                  },
+                  "meta": {
+                    "requestId": "a3f2c1d4-7b6e-4f2a-9c1d-8e3f2a1b4c5d",
+                    "durationMs": 1842
+                  }
                 }
               }
             }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
-      "post": {
-        "description": "Information about a new plant added to the store",
-        "requestBody": {
-          "description": "Plant added to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
           },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
+          "400": { "description": "Invalid or missing URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "Missing or invalid API key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Revoked key, expired key, credit limit, or blocklisted URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "429": { "description": "Rate limit exceeded.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "500": { "description": "Extraction failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "504": { "description": "Request timed out (55-second limit).", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
         }
       }
     },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+    "/company": {
+      "get": {
+        "operationId": "getCompany",
+        "summary": "Extract company info",
+        "description": "Extracts the legal company name, contact email addresses, and physical addresses from a website. Costs **2 credits**.",
+        "tags": ["Endpoints"],
+        "parameters": [
+          { "$ref": "#/components/parameters/url" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Company information.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/CompanyData" },
+                    "meta": { "$ref": "#/components/schemas/Meta" }
+                  },
+                  "required": ["success", "data", "meta"]
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "domain": "stripe.com",
+                    "url": "https://stripe.com",
+                    "company": {
+                      "name": "Stripe, Inc.",
+                      "emails": ["support@stripe.com"],
+                      "addresses": ["354 Oyster Point Blvd, South San Francisco, CA 94080"],
+                      "sources": ["jsonld", "footer"],
+                      "confidence": 0.92
+                    }
+                  },
+                  "meta": {
+                    "requestId": "b9e1a2f3-4c5d-6e7f-8a9b-0c1d2e3f4a5b",
+                    "durationMs": 3210
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid or missing URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "Missing or invalid API key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Revoked key, expired key, credit limit, or blocklisted URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "429": { "description": "Rate limit exceeded.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "500": { "description": "Extraction failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "504": { "description": "Request timed out.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/screenshot": {
+      "get": {
+        "operationId": "takeScreenshot",
+        "summary": "Take a screenshot",
+        "description": "Captures a screenshot of a webpage and returns a public URL to the image stored in cloud storage. Costs **1 credit**.",
+        "tags": ["Endpoints"],
+        "parameters": [
+          { "$ref": "#/components/parameters/url" },
+          { "$ref": "#/components/parameters/screenshotWidth" },
+          { "$ref": "#/components/parameters/screenshotHeight" },
+          { "$ref": "#/components/parameters/screenshotFormat" },
+          { "$ref": "#/components/parameters/screenshotFullPage" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Screenshot result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/ScreenshotData" },
+                    "meta": { "$ref": "#/components/schemas/Meta" }
+                  },
+                  "required": ["success", "data", "meta"]
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "url": "https://stripe.com",
+                    "screenshot_url": "https://assets.prefetch.io/screenshots/stripe-1440x900.jpg",
+                    "viewport": { "width": 1440, "height": 900 },
+                    "format": "jpeg",
+                    "full_page": false,
+                    "captured_at": "2026-03-19T14:22:05.000Z"
+                  },
+                  "meta": {
+                    "requestId": "c1d2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f",
+                    "durationMs": 2540
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid URL or parameters.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "Missing or invalid API key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Revoked key, expired key, credit limit, or blocklisted URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "429": { "description": "Rate limit exceeded.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "500": { "description": "Screenshot failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "504": { "description": "Request timed out.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/brand": {
+      "get": {
+        "operationId": "getBrand",
+        "summary": "Extract brand assets",
+        "description": "Extracts brand colors, logos, fonts, images, and social media links from a website. Costs **2 credits**.",
+        "tags": ["Endpoints"],
+        "parameters": [
+          { "$ref": "#/components/parameters/url" },
+          {
+            "name": "screenshotColors",
+            "in": "query",
+            "required": false,
+            "description": "Extract N dominant colors from the page screenshot. Range: 2–12. Omit to skip screenshot color extraction.",
+            "schema": { "type": "integer", "minimum": 2, "maximum": 12 }
+          },
+          {
+            "name": "css",
+            "in": "query",
+            "required": false,
+            "description": "Extract colors defined in CSS source code. Default: `false`.",
+            "schema": { "type": "boolean", "default": false }
+          },
+          {
+            "name": "html",
+            "in": "query",
+            "required": false,
+            "description": "Extract colors defined in HTML attributes. Default: `false`.",
+            "schema": { "type": "boolean", "default": false }
+          },
+          {
+            "name": "javascript",
+            "in": "query",
+            "required": false,
+            "description": "Extract colors defined in JavaScript source code. Default: `false`.",
+            "schema": { "type": "boolean", "default": false }
+          },
+          { "$ref": "#/components/parameters/screenshotWidth" },
+          { "$ref": "#/components/parameters/screenshotHeight" },
+          { "$ref": "#/components/parameters/screenshotFormat" },
+          { "$ref": "#/components/parameters/screenshotFullPage" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Brand extraction result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/BrandData" },
+                    "meta": { "$ref": "#/components/schemas/Meta" }
+                  },
+                  "required": ["success", "data", "meta"]
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid URL or parameters.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "Missing or invalid API key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Revoked key, expired key, credit limit, or blocklisted URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "429": { "description": "Rate limit exceeded.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "500": { "description": "Extraction failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "504": { "description": "Request timed out.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/enrich": {
+      "get": {
+        "operationId": "enrichUrl",
+        "summary": "Enrich a URL",
+        "description": "Runs brand extraction, company info extraction, and website classification in parallel and returns all results in a single response. Costs **3 credits**.\n\nThis is the most comprehensive endpoint — equivalent to calling `/brand`, `/company`, and `/classify` together.",
+        "tags": ["Endpoints"],
+        "parameters": [
+          { "$ref": "#/components/parameters/url" },
+          {
+            "name": "screenshotColors",
+            "in": "query",
+            "required": false,
+            "description": "Extract N dominant colors from the page screenshot. Range: 2–12.",
+            "schema": { "type": "integer", "minimum": 2, "maximum": 12 }
+          },
+          {
+            "name": "css",
+            "in": "query",
+            "required": false,
+            "description": "Extract colors from CSS source code. Default: `false`.",
+            "schema": { "type": "boolean", "default": false }
+          },
+          {
+            "name": "html",
+            "in": "query",
+            "required": false,
+            "description": "Extract colors from HTML source code. Default: `false`.",
+            "schema": { "type": "boolean", "default": false }
+          },
+          {
+            "name": "javascript",
+            "in": "query",
+            "required": false,
+            "description": "Extract colors from JavaScript source code. Default: `false`.",
+            "schema": { "type": "boolean", "default": false }
+          },
+          { "$ref": "#/components/parameters/screenshotWidth" },
+          { "$ref": "#/components/parameters/screenshotHeight" },
+          { "$ref": "#/components/parameters/screenshotFormat" },
+          { "$ref": "#/components/parameters/screenshotFullPage" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enrichment result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/EnrichData" },
+                    "meta": { "$ref": "#/components/schemas/Meta" }
+                  },
+                  "required": ["success", "data", "meta"]
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid URL or parameters.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "Missing or invalid API key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Revoked key, expired key, credit limit, or blocklisted URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "429": { "description": "Rate limit exceeded.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "500": { "description": "Extraction failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "504": { "description": "Request timed out.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Endpoints",
+      "description": "Data extraction endpoints. All require authentication and consume credits."
+    },
+    {
+      "name": "Health",
+      "description": "Health and readiness probes. No authentication required."
+    }
+  ]
 }

@@ -1,0 +1,61 @@
+---
+title: "Authentication"
+description: "How to authenticate requests to the Prefetch API using API keys."
+icon: "key"
+---
+
+## API keys
+
+All Prefetch API endpoints (except `/health` and `/ready`) require an API key. Pass your key in the `X-API-Key` request header:
+
+```bash
+curl "https://api.prefetch.io/classify?url=https://example.com" \
+  -H "X-API-Key: your_api_key_here"
+```
+
+Get your API key from the [dashboard](https://dashboard.prefetch.io).
+
+## Key validation
+
+Every request validates your API key against the following checks, in order:
+
+1. **Present** — key must be included in the header
+2. **Not revoked** — key has not been manually revoked
+3. **Not expired** — key has not passed its expiry date
+4. **Within credit limit** — key has not exceeded its configured credit limit
+
+If any check fails, you receive a `403 Forbidden` response with a descriptive error message.
+
+## First-party origin injection
+
+If you're calling the API from your own frontend (browser), you can configure allowed origins so requests from those origins automatically use a shared API key — without exposing it in client-side code.
+
+Set `ALLOWED_ORIGINS` and `DEFAULT_API_KEY` in your server environment:
+
+```env
+ALLOWED_ORIGINS=https://yourapp.com,https://staging.yourapp.com
+DEFAULT_API_KEY=your_default_api_key
+```
+
+When a request arrives from one of those origins without an `X-API-Key` header, the `DEFAULT_API_KEY` is injected automatically.
+
+<Warning>
+Never expose your API key in client-side JavaScript. Use the origin injection feature or proxy requests through your own backend.
+</Warning>
+
+## Key security best practices
+
+- Rotate keys regularly from the dashboard
+- Use separate keys for development and production
+- Set a credit limit on each key to prevent unexpected overages
+- Revoke compromised keys immediately from the dashboard
+
+## Error responses
+
+| Error message | Cause |
+|---|---|
+| `"Missing API key"` | No `X-API-Key` header provided |
+| `"Invalid API key"` | Key not found in the system |
+| `"API key has been revoked"` | Key was manually revoked |
+| `"API key has expired"` | Key passed its expiry date |
+| `"Credit limit exceeded"` | Key used all its allocated credits |

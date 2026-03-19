@@ -1,0 +1,104 @@
+---
+title: "Error handling"
+description: "How errors are returned by the Prefetch API, including status codes and error messages."
+icon: "circle-exclamation"
+---
+
+## Error envelope
+
+All errors use the same response envelope as successful responses, with `success: false` and an `error` string:
+
+```json
+{
+  "success": false,
+  "error": "Human-readable error message",
+  "meta": {
+    "requestId": "uuid-v4",
+    "durationMs": 12
+  }
+}
+```
+
+Always check `success` before reading `data`.
+
+```javascript
+const { success, data, error, meta } = await res.json();
+
+if (!success) {
+  console.error(`Request ${meta.requestId} failed: ${error}`);
+  // Handle error
+} else {
+  // Use data
+}
+```
+
+## HTTP status codes
+
+| Status | Category | When it occurs |
+|---|---|---|
+| `200` | Success | Request completed successfully, credits deducted |
+| `400` | Validation error | Invalid or missing `url`, bad parameter values |
+| `401` | Unauthorized | No `X-API-Key` header provided |
+| `403` | Forbidden | Invalid key, revoked key, expired key, credit limit exceeded, blocklisted URL |
+| `429` | Rate limited | Global (300/min per IP) or per-key rate limit exceeded |
+| `500` | Server error | Page not accessible, extraction failed, internal error |
+| `504` | Timeout | Request exceeded the 55-second processing limit |
+
+## Error messages
+
+### Validation errors (400)
+
+| Message | Cause |
+|---|---|
+| `"url parameter is required"` | Missing `url` query parameter |
+| `"Invalid URL"` | URL fails validation (bad format, private IP, reserved TLD) |
+| `"URL exceeds maximum length"` | URL longer than 2048 characters |
+| `"width must be between 320 and 5000"` | Screenshot width out of range |
+| `"height must be between 320 and 5000"` | Screenshot height out of range |
+| `"screenshotColors must be between 2 and 12"` | Color count out of range |
+
+### Auth errors (401 / 403)
+
+| Message | Cause |
+|---|---|
+| `"Missing API key"` | No `X-API-Key` header |
+| `"Invalid API key"` | Key not found in the system |
+| `"API key has been revoked"` | Key was manually revoked |
+| `"API key has expired"` | Key passed its expiry date |
+| `"Credit limit exceeded"` | Key exhausted its credit allocation |
+| `"URL is blocklisted for this API key"` | URL is on the key's blocklist |
+
+### Rate limit errors (429)
+
+| Message | Cause |
+|---|---|
+| `"Too many requests"` | Global IP rate limit (300/min) exceeded |
+| `"Rate limit exceeded for this API key"` | Per-key RPM limit exceeded |
+
+### Server errors (500 / 504)
+
+| Message | Cause |
+|---|---|
+| `"Page not accessible"` | Target URL returned an error or was unreachable |
+| `"Extraction failed"` | Internal error during data extraction |
+| `"Request timed out"` | Processing exceeded 55 seconds |
+
+## Blocked URLs
+
+Certain URLs are automatically blocked to prevent misuse:
+
+- **Private IP ranges** — `10.x.x.x`, `192.168.x.x`, `127.x.x.x`, etc.
+- **Reserved TLDs** — `.local`, `.internal`, `.localhost`, etc.
+- **Per-key blocklist** — URLs manually added to a key's blocklist
+
+Requests to blocked URLs return `403 Forbidden` with `"URL is blocklisted for this API key"`.
+
+## Retrying failed requests
+
+| Status | Should retry? | Strategy |
+|---|---|---|
+| `400` | No | Fix the request parameters |
+| `401` / `403` | No | Fix authentication or credits |
+| `429` | Yes | Exponential backoff — see [Rate limits](/concepts/rate-limits) |
+| `500` | Maybe | Retry once after a short delay; some pages are intermittently unavailable |
+| `504` | Maybe | The target site may have been slow; retry once |

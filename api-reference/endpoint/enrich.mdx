@@ -1,0 +1,149 @@
+---
+title: "GET /enrich"
+description: "Enrich a URL with brand data, company info, and IAB classification in a single request. Costs 3 credits."
+openapi: "GET /enrich"
+---
+
+## Overview
+
+`/enrich` is the most comprehensive endpoint. It runs brand extraction, company info extraction, and website classification **in parallel** and returns all results in a single response.
+
+This is equivalent to calling `/brand` + `/company` + `/classify` together, but more efficient because the page is only loaded once.
+
+**Use `/enrich` when you want a complete profile of a domain.**
+
+## Cost comparison
+
+| Approach | Credits | Requests |
+|---|---|---|
+| `/enrich` | 3 | 1 |
+| `/brand` + `/company` + `/classify` | 5 | 3 |
+
+## Example request
+
+<CodeGroup>
+
+```bash cURL
+curl "https://api.prefetch.io/enrich?url=https://stripe.com" \
+  -H "X-API-Key: $PREFETCH_API_KEY"
+```
+
+```bash With screenshot colors and CSS
+curl "https://api.prefetch.io/enrich?url=https://stripe.com&screenshotColors=6&css=true" \
+  -H "X-API-Key: $PREFETCH_API_KEY"
+```
+
+```javascript Node.js
+const res = await fetch(
+  "https://api.prefetch.io/enrich?url=https://stripe.com&screenshotColors=6",
+  { headers: { "X-API-Key": process.env.PREFETCH_API_KEY } }
+);
+const { success, data } = await res.json();
+
+// Access all three data sets
+console.log(data.colors.brand_colors[0].hex);  // "#635BFF"
+console.log(data.company.name);                 // "Stripe, Inc."
+console.log(data.classification.category);      // "Personal Finance"
+```
+
+```python Python
+import requests, os
+
+r = requests.get(
+    "https://api.prefetch.io/enrich",
+    params={"url": "https://stripe.com", "screenshotColors": 6},
+    headers={"X-API-Key": os.environ["PREFETCH_API_KEY"]},
+)
+data = r.json()["data"]
+print(data["company"]["name"])
+print(data["classification"]["category"])
+print(data["logos"]["primary"]["url"])
+```
+
+</CodeGroup>
+
+## Example response
+
+```json
+{
+  "success": true,
+  "data": {
+    "domain": "stripe.com",
+    "url": "https://stripe.com",
+    "colors": {
+      "brand_colors": [
+        { "color": "rgb(99,91,255)", "hex": "#635BFF", "name": "blueviolet", "percentage": 38, "source": "logo" }
+      ],
+      "screenshot_colors": [
+        { "color": "rgb(255,255,255)", "hex": "#FFFFFF", "name": "white", "percentage": 61, "source": "screenshot" }
+      ]
+    },
+    "fonts": {
+      "families": ["Sohne", "Inter"],
+      "google_fonts": [],
+      "typekit": []
+    },
+    "logos": {
+      "primary": {
+        "url": "https://assets.prefetch.io/logos/stripe-logo.svg",
+        "source": "jsonld",
+        "score": 185,
+        "isSvg": true
+      },
+      "secondary": [],
+      "favicon_url": "https://stripe.com/favicon.ico",
+      "icon_url": null,
+      "apple_touch_icon": null
+    },
+    "images": {
+      "og_image": "https://stripe.com/img/v3/home/social.png",
+      "twitter_image": "https://stripe.com/img/v3/home/social.png",
+      "assets": [],
+      "screenshot_url": "https://assets.prefetch.io/screenshots/stripe-1440x900.jpg"
+    },
+    "social_links": {
+      "twitter": "https://twitter.com/stripe",
+      "linkedin": "https://linkedin.com/company/stripe",
+      "github": "https://github.com/stripe",
+      "facebook": null,
+      "instagram": null,
+      "youtube": null
+    },
+    "company": {
+      "name": "Stripe, Inc.",
+      "emails": ["support@stripe.com"],
+      "addresses": ["354 Oyster Point Blvd, South San Francisco, CA 94080"],
+      "sources": ["jsonld", "footer"],
+      "confidence": 0.92
+    },
+    "classification": {
+      "url": "https://stripe.com",
+      "iab_id": "IAB13-11",
+      "iab_parent_id": "IAB13",
+      "category": "Personal Finance",
+      "subcategory": "Financial Planning",
+      "description": "Stripe provides payment processing infrastructure for internet businesses."
+    }
+  },
+  "meta": {
+    "requestId": "e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b",
+    "durationMs": 5280
+  }
+}
+```
+
+## All parameters
+
+`/enrich` accepts the same parameters as `/brand` for controlling color extraction and screenshot settings:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `url` | required | Website URL to enrich |
+| `screenshotColors` | — | Extract N dominant screenshot colors (2–12) |
+| `css` | `false` | Extract colors from CSS source |
+| `html` | `false` | Extract colors from HTML source |
+| `javascript` | `false` | Extract colors from JavaScript source |
+| `width` | `1440` | Viewport width (320–5000) |
+| `height` | `900` | Viewport height (320–5000) |
+| `format` | `jpeg` | Screenshot format: `jpeg`, `png`, `webp` |
+| `full_page` | `false` | Capture full scrollable height |

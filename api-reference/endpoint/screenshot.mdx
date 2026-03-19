@@ -1,0 +1,91 @@
+---
+title: "GET /screenshot"
+description: "Capture a webpage screenshot and get a public URL to the image. Costs 1 credit."
+openapi: "GET /screenshot"
+---
+
+## Overview
+
+`/screenshot` opens a URL in a headless Chrome browser and captures a screenshot. The image is stored in cloud storage and a public URL is returned. You can configure:
+
+- **Viewport size** — width and height of the browser window
+- **Full page** — capture the entire scrollable content instead of just the viewport
+- **Format** — JPEG (smaller), PNG (lossless), or WebP (best compression)
+
+## Example requests
+
+<CodeGroup>
+
+```bash Default (1440×900 JPEG)
+curl "https://api.prefetch.io/screenshot?url=https://stripe.com" \
+  -H "X-API-Key: $PREFETCH_API_KEY"
+```
+
+```bash Mobile viewport
+curl "https://api.prefetch.io/screenshot?url=https://stripe.com&width=390&height=844" \
+  -H "X-API-Key: $PREFETCH_API_KEY"
+```
+
+```bash Full page PNG
+curl "https://api.prefetch.io/screenshot?url=https://stripe.com&full_page=true&format=png" \
+  -H "X-API-Key: $PREFETCH_API_KEY"
+```
+
+```javascript Node.js
+const params = new URLSearchParams({
+  url: "https://stripe.com",
+  width: "1280",
+  height: "800",
+  format: "webp",
+  full_page: "false",
+});
+
+const res = await fetch(
+  `https://api.prefetch.io/screenshot?${params}`,
+  { headers: { "X-API-Key": process.env.PREFETCH_API_KEY } }
+);
+const { data } = await res.json();
+console.log(data.screenshot_url);
+```
+
+</CodeGroup>
+
+## Example response
+
+```json
+{
+  "success": true,
+  "data": {
+    "url": "https://stripe.com",
+    "screenshot_url": "https://assets.prefetch.io/screenshots/stripe-1440x900-abc123.jpg",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "format": "jpeg",
+    "full_page": false,
+    "captured_at": "2026-03-19T14:22:05.000Z"
+  },
+  "meta": {
+    "requestId": "c1d2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f",
+    "durationMs": 2540
+  }
+}
+```
+
+## Format comparison
+
+| Format | Best for | Notes |
+|---|---|---|
+| `jpeg` | General use, thumbnails | Smallest file size, lossy compression |
+| `png` | Logos, UI elements, transparency | Lossless, larger files |
+| `webp` | Web display | Best compression-to-quality ratio |
+
+## Parameter limits
+
+| Parameter | Default | Min | Max |
+|---|---|---|---|
+| `width` | 1440 | 320 | 5000 |
+| `height` | 900 | 320 | 5000 |
+| `format` | `jpeg` | — | — |
+| `full_page` | `false` | — | — |

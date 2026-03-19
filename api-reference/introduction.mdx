@@ -1,33 +1,93 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API Reference"
+description: "REST API reference for Prefetch. All endpoints accept GET requests and return JSON."
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
-
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+```
+https://api.prefetch.io
+```
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All endpoints (except `/health` and `/ready`) require an `X-API-Key` header.
+
+```bash
+curl https://api.prefetch.io/classify?url=https://example.com \
+  -H "X-API-Key: your_api_key"
+```
+
+See [Authentication](/concepts/authentication) for full details including first-party origin injection.
+
+## Response format
+
+Every response uses a consistent envelope:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
+{
+  "success": true,
+  "data": { },
+  "meta": {
+    "requestId": "uuid-v4",
+    "durationMs": 1234
   }
-]
+}
 ```
+
+On error, `success` is `false` and `data` is replaced by `error`:
+
+```json
+{
+  "success": false,
+  "error": "Credit limit exceeded",
+  "meta": {
+    "requestId": "uuid-v4",
+    "durationMs": 8
+  }
+}
+```
+
+## Credit costs
+
+| Endpoint | Credits |
+|---|---|
+| `GET /enrich` | 3 |
+| `GET /brand` | 2 |
+| `GET /company` | 2 |
+| `GET /classify` | 1 |
+| `GET /screenshot` | 1 |
+| `GET /health` | — |
+| `GET /ready` | — |
+
+Credits are deducted only on successful responses. See [Credits](/concepts/credits).
+
+## Rate limits
+
+- **Global:** 300 requests per minute per IP
+- **Per key:** Configurable sliding window (1-minute) set on your API key
+
+Exceeding either limit returns HTTP 429. See [Rate limits](/concepts/rate-limits).
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="GET /enrich" icon="layer-group" href="/api-reference/endpoint/enrich">
+    Brand + company + classification in one call. **3 credits.**
+  </Card>
+  <Card title="GET /brand" icon="palette" href="/api-reference/endpoint/brand">
+    Colors, logos, fonts, and social links. **2 credits.**
+  </Card>
+  <Card title="GET /company" icon="building" href="/api-reference/endpoint/company">
+    Company name, emails, and addresses. **2 credits.**
+  </Card>
+  <Card title="GET /classify" icon="tags" href="/api-reference/endpoint/classify">
+    IAB category and description. **1 credit.**
+  </Card>
+  <Card title="GET /screenshot" icon="camera" href="/api-reference/endpoint/screenshot">
+    Webpage screenshot URL. **1 credit.**
+  </Card>
+  <Card title="GET /health" icon="heart-pulse" href="/api-reference/endpoint/health">
+    Liveness probe. **Free.**
+  </Card>
+</CardGroup>

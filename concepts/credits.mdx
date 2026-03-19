@@ -1,0 +1,69 @@
+---
+title: "Credits"
+description: "How the Prefetch API credit system works, including costs per endpoint and billing behavior."
+icon: "coins"
+---
+
+## Credit costs
+
+Each data extraction endpoint consumes a fixed number of credits per successful request:
+
+| Endpoint | Credits | What you get |
+|---|---|---|
+| `GET /enrich` | 3 | Brand + company + classification |
+| `GET /brand` | 2 | Colors, logos, fonts, social links |
+| `GET /company` | 2 | Company name, emails, addresses |
+| `GET /classify` | 1 | IAB category and description |
+| `GET /screenshot` | 1 | Webpage screenshot URL |
+| `GET /health` | — | Liveness check |
+| `GET /ready` | — | Readiness check |
+
+## When credits are deducted
+
+Credits are deducted **only on successful responses** — meaning the API returned `"success": true` with a `200` status code.
+
+You are **not charged** for:
+- Failed requests (4xx or 5xx responses)
+- Validation errors (missing URL, bad parameters)
+- Authentication failures
+- Rate limit rejections (429)
+- Timeouts (504)
+
+## Credit limits
+
+Each API key can have a `credits_limit` configured. When cumulative `credits_used` reaches this limit, all further requests return:
+
+```json
+{
+  "success": false,
+  "error": "Credit limit exceeded",
+  "meta": { ... }
+}
+```
+
+Manage and monitor your credit usage from the [dashboard](https://dashboard.prefetch.io).
+
+## Choosing the right endpoint
+
+When you need both brand and company data for a URL, use `/enrich` instead of calling `/brand` and `/company` separately:
+
+<Columns cols={2}>
+  <Card title="Use /enrich" icon="layer-group">
+    3 credits for brand + company + classification.
+
+    Best when you want a complete domain profile.
+  </Card>
+  <Card title="Use individual endpoints" icon="split">
+    More targeted — only pay for what you need.
+
+    Best when you only need one type of data.
+  </Card>
+</Columns>
+
+| Scenario | Best approach | Credits spent |
+|---|---|---|
+| Need all three data types | `/enrich` | 3 |
+| Need brand + company only | `/enrich` | 3 |
+| Need brand only | `/brand` | 2 |
+| Need classification only | `/classify` | 1 |
+| Need brand + classification | `/brand` + `/classify` | 3 |

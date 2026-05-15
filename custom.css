@@ -1,3 +1,4 @@
+/* ── Page background ──────────────────────────────────────────── */
 html.dark,
 html.dark body,
 html.dark #__next,
@@ -5,6 +6,7 @@ html.dark main {
   background-color: #1a0618 !important;
 }
 
+/* ── Brand tokens ─────────────────────────────────────────────── */
 :root {
   --color-bg: #1a0618;
   --color-card: #3c2533;
@@ -13,55 +15,72 @@ html.dark main {
   --color-amber: #F7B00A;
   --color-amber-light: #ffc52e;
   --color-pink: #FF6F91;
-  --color-pipe: #7b3a5a;
   --color-muted: #a8899e;
-  --color-code: #1a0c14;
+  --color-code: #1a0618;
 }
 
-/* Cards */
-.dark [class*="card"],
-.dark [class*="Card"] {
-  background-color: var(--color-card);
-  border-color: var(--color-border);
+/* ── Card GROUP containers — no background, no border ─────────── */
+/* Mintlify wraps CardGroup in a div with role="group" or a grid wrapper */
+.dark [class*="CardGroup"],
+.dark [class*="card-group"],
+.dark [class*="cardGroup"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-/* Code blocks */
+/* ── Individual cards ─────────────────────────────────────────── */
+.dark [class*="CardItem"],
+.dark [class*="card-item"],
+.dark a[class*="card"],
+.dark div[class*="card"]:not([class*="Group"]):not([class*="group"]) {
+  background-color: var(--color-card) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* ── Code blocks ──────────────────────────────────────────────── */
 .dark pre,
+.dark code,
 .dark [class*="codeBlock"],
-.dark [class*="code-block"] {
+.dark [class*="code-block"],
+.dark [class*="CodeBlock"] {
   background-color: var(--color-code) !important;
-  border: 1px solid var(--color-border);
+  border-color: var(--color-border) !important;
 }
 
-/* Callout / note boxes */
+/* Replace Mintlify default dark greys on surfaces */
+.dark [class*="bg-gray"],
+.dark [class*="bg-zinc"],
+.dark [class*="bg-neutral"],
+.dark [class*="bg-slate"] {
+  background-color: var(--color-card) !important;
+}
+
+/* ── Callouts ─────────────────────────────────────────────────── */
 .dark [class*="callout"],
-.dark [class*="Callout"],
-.dark [class*="note"],
-.dark [class*="tip"],
-.dark [class*="warning"] {
-  background-color: var(--color-card);
-  border-color: var(--color-border);
+.dark [class*="Callout"] {
+  background-color: var(--color-card) !important;
+  border-color: var(--color-border) !important;
 }
 
-/* Muted text */
+/* ── Muted / description text ─────────────────────────────────── */
 .dark [class*="muted"],
 .dark [class*="description"],
 .dark [class*="subtitle"] {
   color: var(--color-muted);
 }
 
-/* Amber accent on hover for links */
+/* ── Link hover ───────────────────────────────────────────────── */
 .dark a:hover {
   color: var(--color-amber-light);
 }
 
-/* Navbar border */
+/* ── Navbar / sidebar borders ─────────────────────────────────── */
 .dark header,
 .dark nav {
   border-bottom-color: var(--color-border);
 }
 
-/* Sidebar */
 .dark aside,
 .dark [class*="sidebar"],
 .dark [class*="Sidebar"] {

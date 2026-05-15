@@ -1,6 +1,6 @@
 ---
 title: "GET /classify"
-description: "Classify a website into an IAB content taxonomy category with a human-readable description. Costs 1 credit."
+description: "Classify a website into an IAB content taxonomy category with descriptions, stock tickers, and ISIN codes. Costs 5 credits."
 openapi: "GET /classify"
 ---
 
@@ -10,7 +10,11 @@ openapi: "GET /classify"
 
 - **IAB category** — parent category (e.g. "Technology & Computing")
 - **IAB subcategory** — more specific classification (e.g. "Software")
-- **Description** — a 1–2 sentence summary of what the site does
+- **Description** — a short summary of what the site does
+- **Tagline description** — one-line tagline
+- **Long description** — extended multi-sentence description
+- **Stock tickers** — associated ticker symbols if the company is publicly traded
+- **ISINs** — associated ISIN security codes
 
 This endpoint uses a hybrid approach: it first attempts a fast static fetch, falling back to headless Chrome only if the page requires JavaScript to render meaningful content.
 
@@ -58,7 +62,11 @@ print(f"{data['category']} > {data['subcategory']}")
     "iab_parent_id": "IAB13",
     "category": "Personal Finance",
     "subcategory": "Financial Planning",
-    "description": "Stripe provides payment processing infrastructure for internet businesses, enabling companies to accept payments, manage subscriptions, and handle their online commerce operations globally."
+    "description": "Stripe provides payment processing infrastructure for internet businesses.",
+    "tagline_description": "Payment infrastructure for the internet.",
+    "long_description": "Stripe provides payment processing infrastructure for internet businesses, enabling companies to accept payments, manage subscriptions, and handle global commerce operations.",
+    "stock_tickers": [],
+    "isins": []
   },
   "meta": {
     "requestId": "a3f2c1d4-7b6e-4f2a-9c1d-8e3f2a1b4c5d",

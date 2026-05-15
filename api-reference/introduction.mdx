@@ -52,11 +52,11 @@ On error, `success` is `false` and `data` is replaced by `error`:
 
 | Endpoint | Credits |
 |---|---|
-| `GET /enrich` | 3 |
-| `GET /brand` | 2 |
-| `GET /company` | 2 |
-| `GET /classify` | 1 |
-| `GET /screenshot` | 1 |
+| `GET /enrich` | 20 |
+| `GET /brand` | 10 |
+| `GET /company` | 5 |
+| `GET /classify` | 5 |
+| `GET /screenshot` | 2 |
 | `GET /health` | — |
 | `GET /ready` | — |
 
@@ -73,19 +73,19 @@ Exceeding either limit returns HTTP 429. See [Rate limits](/concepts/rate-limits
 
 <CardGroup cols={2}>
   <Card title="GET /enrich" icon="layer-group" href="/api-reference/endpoint/enrich">
-    Brand + company + classification in one call. **3 credits.**
+    Brand + company + classification in one call. **20 credits.**
   </Card>
   <Card title="GET /brand" icon="palette" href="/api-reference/endpoint/brand">
-    Colors, logos, fonts, and social links. **2 credits.**
+    Colors, logos, fonts, and social links. **10 credits.**
   </Card>
   <Card title="GET /company" icon="building" href="/api-reference/endpoint/company">
-    Company name, emails, and addresses. **2 credits.**
+    Company name, emails, and addresses. **5 credits.**
   </Card>
   <Card title="GET /classify" icon="tags" href="/api-reference/endpoint/classify">
-    IAB category and description. **1 credit.**
+    IAB category, descriptions, tickers, and ISINs. **5 credits.**
   </Card>
   <Card title="GET /screenshot" icon="camera" href="/api-reference/endpoint/screenshot">
-    Webpage screenshot URL. **1 credit.**
+    Webpage screenshot URL. **2 credits.**
   </Card>
   <Card title="GET /health" icon="heart-pulse" href="/api-reference/endpoint/health">
     Liveness probe. **Free.**

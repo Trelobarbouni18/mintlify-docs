@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Prefetch API",
   "colors": {
-    "primary": "#6366F1",
-    "light": "#818CF8",
-    "dark": "#4F46E5"
+    "primary": "#18E299",
+    "light": "#1fffa8",
+    "dark": "#0C8C5E"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -62,11 +62,6 @@
           "anchor": "API Reference",
           "href": "/api-reference/introduction",
           "icon": "rectangle-terminal"
-        },
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com",
-          "icon": "github"
         }
       ]
     }

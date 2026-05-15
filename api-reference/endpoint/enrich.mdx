@@ -1,6 +1,6 @@
 ---
 title: "GET /enrich"
-description: "Enrich a URL with brand data, company info, and IAB classification in a single request. Costs 3 credits."
+description: "Enrich a URL with brand data, company info, and IAB classification in a single request. Costs 20 credits."
 openapi: "GET /enrich"
 ---
 
@@ -16,8 +16,8 @@ This is equivalent to calling `/brand` + `/company` + `/classify` together, but 
 
 | Approach | Credits | Requests |
 |---|---|---|
-| `/enrich` | 3 | 1 |
-| `/brand` + `/company` + `/classify` | 5 | 3 |
+| `/enrich` | 20 | 1 |
+| `/brand` + `/company` + `/classify` | 20 | 3 |
 
 ## Example request
 
@@ -41,9 +41,10 @@ const res = await fetch(
 const { success, data } = await res.json();
 
 // Access all three data sets
-console.log(data.colors.brand_colors[0].hex);  // "#635BFF"
-console.log(data.company.name);                 // "Stripe, Inc."
-console.log(data.classification.category);      // "Personal Finance"
+console.log(data.colors.brand_colors[0].hex);            // "#635BFF"
+console.log(data.company.name);                           // "Stripe, Inc."
+console.log(data.classification.category);                // "Personal Finance"
+console.log(data.classification.tagline_description);     // "Payment infrastructure for the internet."
 ```
 
 ```python Python
@@ -72,23 +73,22 @@ print(data["logos"]["primary"]["url"])
     "url": "https://stripe.com",
     "colors": {
       "brand_colors": [
-        { "color": "rgb(99,91,255)", "hex": "#635BFF", "name": "blueviolet", "percentage": 38, "source": "logo" }
+        { "hex": "#635BFF", "name": "blueviolet" },
+        { "hex": "#00D4FF", "name": "cyan" }
       ],
       "screenshot_colors": [
-        { "color": "rgb(255,255,255)", "hex": "#FFFFFF", "name": "white", "percentage": 61, "source": "screenshot" }
+        { "hex": "#FFFFFF", "name": "white" },
+        { "hex": "#0A2540", "name": "darkblue" }
       ]
     },
     "fonts": {
-      "families": ["Sohne", "Inter"],
-      "google_fonts": [],
-      "typekit": []
+      "families": ["Sohne", "Inter"]
     },
     "logos": {
       "primary": {
         "url": "https://assets.prefetch.io/logos/stripe-logo.svg",
-        "source": "jsonld",
-        "score": 185,
-        "isSvg": true
+        "width": null,
+        "height": null
       },
       "secondary": [],
       "favicon_url": "https://stripe.com/favicon.ico",
@@ -98,23 +98,16 @@ print(data["logos"]["primary"]["url"])
     "images": {
       "og_image": "https://stripe.com/img/v3/home/social.png",
       "twitter_image": "https://stripe.com/img/v3/home/social.png",
-      "assets": [],
       "screenshot_url": "https://assets.prefetch.io/screenshots/stripe-1440x900.jpg"
     },
     "social_links": {
       "twitter": "https://twitter.com/stripe",
-      "linkedin": "https://linkedin.com/company/stripe",
-      "github": "https://github.com/stripe",
-      "facebook": null,
-      "instagram": null,
-      "youtube": null
+      "linkedin": "https://linkedin.com/company/stripe"
     },
     "company": {
       "name": "Stripe, Inc.",
       "emails": ["support@stripe.com"],
-      "addresses": ["354 Oyster Point Blvd, South San Francisco, CA 94080"],
-      "sources": ["jsonld", "footer"],
-      "confidence": 0.92
+      "addresses": ["354 Oyster Point Blvd, South San Francisco, CA 94080"]
     },
     "classification": {
       "url": "https://stripe.com",
@@ -122,7 +115,11 @@ print(data["logos"]["primary"]["url"])
       "iab_parent_id": "IAB13",
       "category": "Personal Finance",
       "subcategory": "Financial Planning",
-      "description": "Stripe provides payment processing infrastructure for internet businesses."
+      "description": "Stripe provides payment processing infrastructure for internet businesses.",
+      "tagline_description": "Payment infrastructure for the internet.",
+      "long_description": "Stripe provides payment processing infrastructure for internet businesses, enabling companies to accept payments, manage subscriptions, and handle global commerce operations.",
+      "stock_tickers": [],
+      "isins": []
     }
   },
   "meta": {
@@ -143,7 +140,9 @@ print(data["logos"]["primary"]["url"])
 | `css` | `false` | Extract colors from CSS source |
 | `html` | `false` | Extract colors from HTML source |
 | `javascript` | `false` | Extract colors from JavaScript source |
-| `width` | `1440` | Viewport width (320–5000) |
-| `height` | `900` | Viewport height (320–5000) |
-| `format` | `jpeg` | Screenshot format: `jpeg`, `png`, `webp` |
-| `full_page` | `false` | Capture full scrollable height |
+| `screenshotWidth` | `1440` | Viewport width (320–3000) |
+| `screenshotHeight` | `900` | Viewport height (320–3000) |
+| `screenshotFormat` | `jpeg` | Screenshot format: `jpeg`, `png`, `pdf` |
+| `screenshotFullPage` | `false` | Capture full scrollable height |
+| `disableAdblocker` | `false` | Disable the built-in adblocker |
+| `filterAchromatic` | `false` | Exclude near-white, near-black, and greyscale colors |

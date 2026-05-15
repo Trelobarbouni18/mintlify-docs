@@ -10,11 +10,11 @@ Each data extraction endpoint consumes a fixed number of credits per successful 
 
 | Endpoint | Credits | What you get |
 |---|---|---|
-| `GET /enrich` | 3 | Brand + company + classification |
-| `GET /brand` | 2 | Colors, logos, fonts, social links |
-| `GET /company` | 2 | Company name, emails, addresses |
-| `GET /classify` | 1 | IAB category and description |
-| `GET /screenshot` | 1 | Webpage screenshot URL |
+| `GET /enrich` | 20 | Brand + company + classification |
+| `GET /brand` | 10 | Colors, logos, fonts, social links |
+| `GET /company` | 5 | Company name, emails, addresses |
+| `GET /classify` | 5 | IAB category, descriptions, tickers, ISINs |
+| `GET /screenshot` | 2 | Webpage screenshot URL |
 | `GET /health` | — | Liveness check |
 | `GET /ready` | — | Readiness check |
 
@@ -45,25 +45,26 @@ Manage and monitor your credit usage from the [dashboard](https://dashboard.pref
 
 ## Choosing the right endpoint
 
-When you need both brand and company data for a URL, use `/enrich` instead of calling `/brand` and `/company` separately:
+When you need brand, company, and classification data for a URL, use `/enrich` for a single optimised call instead of three separate requests:
 
 <Columns cols={2}>
   <Card title="Use /enrich" icon="layer-group">
-    3 credits for brand + company + classification.
+    20 credits for brand + company + classification.
 
-    Best when you want a complete domain profile.
+    Best when you want a complete domain profile in one call.
   </Card>
   <Card title="Use individual endpoints" icon="split">
     More targeted — only pay for what you need.
 
-    Best when you only need one type of data.
+    Best when you only need one or two data types.
   </Card>
 </Columns>
 
 | Scenario | Best approach | Credits spent |
 |---|---|---|
-| Need all three data types | `/enrich` | 3 |
-| Need brand + company only | `/enrich` | 3 |
-| Need brand only | `/brand` | 2 |
-| Need classification only | `/classify` | 1 |
-| Need brand + classification | `/brand` + `/classify` | 3 |
+| Need all three data types | `/enrich` | 20 |
+| Need brand + company only | `/brand` + `/company` | 15 |
+| Need brand only | `/brand` | 10 |
+| Need classification only | `/classify` | 5 |
+| Need screenshot only | `/screenshot` | 2 |
+| Need brand + classification | `/brand` + `/classify` | 15 |

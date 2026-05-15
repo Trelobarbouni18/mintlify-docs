@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Prefetch API",
-    "description": "A high-performance web scraping and data extraction API. Extract brand assets, company information, IAB classifications, and screenshots from any website using headless Chrome.",
+    "description": "Extract brand identity, company data, screenshots, and IAB classifications from any URL.",
     "version": "1.0.0",
     "contact": {
       "email": "support@prefetch.io"
@@ -40,6 +40,7 @@
           },
           "durationMs": {
             "type": "integer",
+            "nullable": true,
             "description": "Time taken to process the request in milliseconds.",
             "example": 1842
           }
@@ -64,87 +65,57 @@
         },
         "required": ["success", "error", "meta"]
       },
-      "Color": {
+      "ColorItem": {
         "type": "object",
         "properties": {
-          "color": {
-            "type": "string",
-            "description": "RGB color string.",
-            "example": "rgb(99,91,255)"
-          },
           "hex": {
             "type": "string",
             "description": "Hex color code.",
-            "example": "#635BFF"
+            "example": "#18E299"
           },
           "name": {
             "type": "string",
             "description": "Closest named CSS color.",
-            "example": "blueviolet"
-          },
-          "percentage": {
-            "type": "number",
-            "description": "Percentage this color represents in the analyzed source.",
-            "example": 38
-          },
-          "source": {
-            "type": "string",
-            "description": "Where this color was extracted from.",
-            "enum": ["logo", "screenshot", "css", "html", "javascript"],
-            "example": "logo"
+            "example": "mediumspringgreen"
           }
         },
-        "required": ["color", "hex", "name", "percentage", "source"]
+        "required": ["hex", "name"]
       },
-      "Logo": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string",
-            "format": "uri",
-            "description": "Public URL to the logo asset stored in cloud storage.",
-            "example": "https://assets.prefetch.io/logos/stripe-logo.svg"
-          },
-          "source": {
-            "type": "string",
-            "description": "Where the logo was discovered.",
-            "example": "jsonld"
-          },
-          "score": {
-            "type": "integer",
-            "description": "Confidence score for logo selection.",
-            "example": 185
-          },
-          "isSvg": {
-            "type": "boolean",
-            "description": "Whether the logo is an SVG.",
-            "example": true
-          }
-        }
-      },
-      "BrandColors": {
+      "ColorsBlock": {
         "type": "object",
         "properties": {
           "brand_colors": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Color" },
+            "items": { "$ref": "#/components/schemas/ColorItem" },
             "description": "Colors extracted from the logo and brand assets."
+          },
+          "logo_colors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ColorItem" },
+            "description": "Colors extracted from the primary logo."
           },
           "screenshot_colors": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Color" },
+            "items": { "$ref": "#/components/schemas/ColorItem" },
             "description": "Dominant colors extracted from the page screenshot. Present only when `screenshotColors` parameter is provided."
           },
-          "code_colors": {
-            "type": "object",
-            "description": "Colors extracted from CSS, HTML, and/or JavaScript. Present only when the corresponding parameters are true.",
-            "properties": {
-              "css": { "type": "array", "items": { "type": "string" } },
-              "html": { "type": "array", "items": { "type": "string" } },
-              "javascript": { "type": "array", "items": { "type": "string" } }
-            }
+          "css_colors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ColorItem" },
+            "description": "Colors extracted from CSS stylesheets. Present only when `css=true`."
+          },
+          "html_colors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ColorItem" },
+            "description": "Colors extracted from HTML attributes. Present only when `html=true`."
+          },
+          "javascript_colors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ColorItem" },
+            "description": "Colors extracted from JavaScript source. Present only when `javascript=true`."
           }
-        }
+        },
+        "required": ["brand_colors"]
       },
       "BrandFonts": {
         "type": "object",
@@ -153,89 +124,100 @@
             "type": "array",
             "items": { "type": "string" },
             "description": "Font family names detected on the page.",
-            "example": ["Sohne", "Inter"]
-          },
-          "google_fonts": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "Google Fonts detected on the page."
-          },
-          "typekit": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "Adobe Typekit fonts detected on the page."
+            "example": ["Inter", "Roboto"]
           }
-        }
+        },
+        "required": ["families"]
       },
-      "BrandLogos": {
+      "LogoObject": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Public URL to the logo asset.",
+            "example": "https://cdn.example.com/logo.svg"
+          },
+          "width": {
+            "type": "number",
+            "nullable": true,
+            "description": "Intrinsic width of the logo in pixels."
+          },
+          "height": {
+            "type": "number",
+            "nullable": true,
+            "description": "Intrinsic height of the logo in pixels."
+          }
+        },
+        "required": ["url"]
+      },
+      "LogosBlock": {
         "type": "object",
         "properties": {
           "primary": {
-            "$ref": "#/components/schemas/Logo",
+            "$ref": "#/components/schemas/LogoObject",
             "description": "Best candidate for the primary logo."
           },
           "secondary": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Logo" },
+            "items": { "$ref": "#/components/schemas/LogoObject" },
             "description": "Other logo candidates found on the page."
           },
           "favicon_url": {
             "type": "string",
             "format": "uri",
+            "nullable": true,
             "description": "URL to the site favicon.",
             "example": "https://stripe.com/favicon.ico"
           },
           "icon_url": {
             "type": "string",
             "format": "uri",
+            "nullable": true,
             "description": "URL to the site icon."
           },
           "apple_touch_icon": {
             "type": "string",
             "format": "uri",
+            "nullable": true,
             "description": "URL to the Apple Touch Icon."
           }
-        }
+        },
+        "required": ["primary", "secondary", "favicon_url", "icon_url", "apple_touch_icon"]
       },
-      "BrandImages": {
+      "ImagesBlock": {
         "type": "object",
         "properties": {
           "og_image": {
             "type": "string",
             "format": "uri",
+            "nullable": true,
             "description": "OpenGraph image URL."
           },
           "twitter_image": {
             "type": "string",
             "format": "uri",
+            "nullable": true,
             "description": "Twitter card image URL."
-          },
-          "assets": {
-            "type": "array",
-            "items": { "type": "string", "format": "uri" },
-            "description": "Additional notable image assets found on the page."
           },
           "screenshot_url": {
             "type": "string",
             "format": "uri",
+            "nullable": true,
             "description": "URL to the page screenshot stored in cloud storage."
-          },
-          "screenshot_colors": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/Color" },
-            "description": "Dominant colors extracted from the screenshot. Present only when `screenshotColors` parameter is provided."
           }
-        }
+        },
+        "required": ["og_image", "twitter_image", "screenshot_url"]
       },
       "SocialLinks": {
         "type": "object",
-        "properties": {
-          "twitter": { "type": "string", "format": "uri", "nullable": true },
-          "linkedin": { "type": "string", "format": "uri", "nullable": true },
-          "github": { "type": "string", "format": "uri", "nullable": true },
-          "facebook": { "type": "string", "format": "uri", "nullable": true },
-          "instagram": { "type": "string", "format": "uri", "nullable": true },
-          "youtube": { "type": "string", "format": "uri", "nullable": true }
+        "additionalProperties": { "type": "string" },
+        "description": "Social media profile URLs keyed by platform name.",
+        "example": {
+          "twitter": "https://twitter.com/stripe",
+          "linkedin": "https://linkedin.com/company/stripe"
         }
       },
       "BrandData": {
@@ -252,10 +234,10 @@
             "description": "The URL that was scraped.",
             "example": "https://stripe.com"
           },
-          "colors": { "$ref": "#/components/schemas/BrandColors" },
+          "colors": { "$ref": "#/components/schemas/ColorsBlock" },
           "fonts": { "$ref": "#/components/schemas/BrandFonts" },
-          "logos": { "$ref": "#/components/schemas/BrandLogos" },
-          "images": { "$ref": "#/components/schemas/BrandImages" },
+          "logos": { "$ref": "#/components/schemas/LogosBlock" },
+          "images": { "$ref": "#/components/schemas/ImagesBlock" },
           "social_links": { "$ref": "#/components/schemas/SocialLinks" }
         },
         "required": ["domain", "url", "colors", "fonts", "logos", "images", "social_links"]
@@ -276,6 +258,7 @@
           },
           "iab_parent_id": {
             "type": "string",
+            "nullable": true,
             "description": "IAB parent category ID.",
             "example": "IAB13"
           },
@@ -286,13 +269,31 @@
           },
           "subcategory": {
             "type": "string",
+            "nullable": true,
             "description": "IAB subcategory name.",
             "example": "Financial Planning"
           },
           "description": {
             "type": "string",
-            "description": "Human-readable description of the website.",
-            "example": "Stripe provides payment processing infrastructure for internet businesses."
+            "description": "Short human-readable description of the website."
+          },
+          "tagline_description": {
+            "type": "string",
+            "description": "One-line tagline description."
+          },
+          "long_description": {
+            "type": "string",
+            "description": "Extended multi-sentence description of the website."
+          },
+          "stock_tickers": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Stock ticker symbols associated with the company, if publicly traded."
+          },
+          "isins": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "ISIN codes associated with the company's securities."
           }
         },
         "required": ["url", "iab_id", "iab_parent_id", "category", "subcategory", "description"]
@@ -302,6 +303,7 @@
         "properties": {
           "name": {
             "type": "string",
+            "nullable": true,
             "description": "Legal entity name of the company.",
             "example": "Stripe, Inc."
           },
@@ -316,22 +318,9 @@
             "items": { "type": "string" },
             "description": "Physical addresses found on the site.",
             "example": ["354 Oyster Point Blvd, South San Francisco, CA 94080"]
-          },
-          "sources": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "Where the data was extracted from.",
-            "example": ["jsonld", "footer"]
-          },
-          "confidence": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "Extraction confidence score between 0 and 1.",
-            "example": 0.92
           }
         },
-        "required": ["name", "emails", "addresses", "sources", "confidence"]
+        "required": ["name", "emails", "addresses"]
       },
       "CompanyData": {
         "type": "object",
@@ -400,10 +389,10 @@
         "properties": {
           "domain": { "type": "string", "example": "stripe.com" },
           "url": { "type": "string", "format": "uri", "example": "https://stripe.com" },
-          "colors": { "$ref": "#/components/schemas/BrandColors" },
+          "colors": { "$ref": "#/components/schemas/ColorsBlock" },
           "fonts": { "$ref": "#/components/schemas/BrandFonts" },
-          "logos": { "$ref": "#/components/schemas/BrandLogos" },
-          "images": { "$ref": "#/components/schemas/BrandImages" },
+          "logos": { "$ref": "#/components/schemas/LogosBlock" },
+          "images": { "$ref": "#/components/schemas/ImagesBlock" },
           "social_links": { "$ref": "#/components/schemas/SocialLinks" },
           "company": { "$ref": "#/components/schemas/CompanyInfo" },
           "classification": { "$ref": "#/components/schemas/ClassifyData" }
@@ -416,7 +405,7 @@
         "name": "url",
         "in": "query",
         "required": true,
-        "description": "The website URL to process. `http://` is prepended automatically if no protocol is provided. Maximum 2048 characters.",
+        "description": "The website URL to process. `https://` is prepended automatically if no protocol is provided.",
         "schema": {
           "type": "string",
           "example": "https://stripe.com"
@@ -426,11 +415,11 @@
         "name": "width",
         "in": "query",
         "required": false,
-        "description": "Viewport width in pixels. Range: 320–5000. Default: 1440.",
+        "description": "Viewport width in pixels. Range: 320–2560. Default: 1440.",
         "schema": {
           "type": "integer",
           "minimum": 320,
-          "maximum": 5000,
+          "maximum": 2560,
           "default": 1440
         }
       },
@@ -438,10 +427,10 @@
         "name": "height",
         "in": "query",
         "required": false,
-        "description": "Viewport height in pixels. Range: 320–5000. Default: 900.",
+        "description": "Viewport height in pixels. Range: 240–5000. Default: 900.",
         "schema": {
           "type": "integer",
-          "minimum": 320,
+          "minimum": 240,
           "maximum": 5000,
           "default": 900
         }
@@ -474,7 +463,7 @@
       "get": {
         "operationId": "getHealth",
         "summary": "Liveness check",
-        "description": "Returns HTTP 200 if the server process is alive. No authentication required. Use as a liveness probe in Kubernetes or other orchestration systems.",
+        "description": "Returns HTTP 200 if the server process is alive. No authentication required.",
         "security": [],
         "tags": ["Health"],
         "responses": {
@@ -485,7 +474,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "enum": ["ok"], "example": "ok" }
+                    "status": { "type": "string", "enum": ["ok"], "example": "ok" },
+                    "uptime": { "type": "integer", "example": 3600 },
+                    "pid": { "type": "integer" }
                   }
                 }
               }
@@ -498,7 +489,7 @@
       "get": {
         "operationId": "getReady",
         "summary": "Readiness check",
-        "description": "Returns HTTP 200 if the server is ready to handle requests (Redis connection is healthy). Returns HTTP 503 if Redis is unavailable. Use as a readiness probe.",
+        "description": "Returns HTTP 200 if the server is ready to handle requests. Returns HTTP 503 if a dependency is unavailable.",
         "security": [],
         "tags": ["Health"],
         "responses": {
@@ -509,21 +500,32 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "enum": ["ok"], "example": "ok" }
+                    "status": { "type": "string", "enum": ["ready", "degraded"], "example": "ready" },
+                    "checks": {
+                      "type": "object",
+                      "properties": {
+                        "redis": { "type": "string", "example": "ok" }
+                      }
+                    }
                   }
                 }
               }
             }
           },
           "503": {
-            "description": "Server is not ready (Redis unavailable).",
+            "description": "Server is not ready.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "enum": ["error"] },
-                    "message": { "type": "string", "example": "Redis connection failed" }
+                    "status": { "type": "string", "enum": ["degraded"] },
+                    "checks": {
+                      "type": "object",
+                      "properties": {
+                        "redis": { "type": "string", "example": "error" }
+                      }
+                    }
                   }
                 }
               }
@@ -536,7 +538,7 @@
       "get": {
         "operationId": "classifyUrl",
         "summary": "Classify a website",
-        "description": "Classifies a website into an IAB content taxonomy category with a human-readable description. Costs **1 credit**.",
+        "description": "Classifies a website into an IAB content taxonomy category with human-readable descriptions, stock tickers, and ISIN codes. **Credit cost: 5.**",
         "tags": ["Endpoints"],
         "parameters": [
           { "$ref": "#/components/parameters/url" }
@@ -563,7 +565,11 @@
                     "iab_parent_id": "IAB13",
                     "category": "Personal Finance",
                     "subcategory": "Financial Planning",
-                    "description": "Stripe provides payment processing infrastructure for internet businesses."
+                    "description": "Stripe provides payment processing infrastructure for internet businesses.",
+                    "tagline_description": "Payment infrastructure for the internet.",
+                    "long_description": "Stripe provides payment processing infrastructure for internet businesses, enabling companies to accept payments, manage subscriptions, and handle global commerce operations.",
+                    "stock_tickers": [],
+                    "isins": []
                   },
                   "meta": {
                     "requestId": "a3f2c1d4-7b6e-4f2a-9c1d-8e3f2a1b4c5d",
@@ -576,9 +582,10 @@
           "400": { "description": "Invalid or missing URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "401": { "description": "Missing or invalid API key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "403": { "description": "Revoked key, expired key, credit limit, or blocklisted URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "422": { "description": "URL hostname could not be resolved.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "429": { "description": "Rate limit exceeded.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "500": { "description": "Extraction failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "504": { "description": "Request timed out (55-second limit).", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+          "503": { "description": "Service temporarily busy — retry shortly.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "504": { "description": "Request timed out.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
         }
       }
     },
@@ -586,7 +593,7 @@
       "get": {
         "operationId": "getCompany",
         "summary": "Extract company info",
-        "description": "Extracts the legal company name, contact email addresses, and physical addresses from a website. Costs **2 credits**.",
+        "description": "Extracts the legal company name, contact email addresses, and physical addresses from a website. **Credit cost: 5.**",
         "tags": ["Endpoints"],
         "parameters": [
           { "$ref": "#/components/parameters/url" }
@@ -613,9 +620,7 @@
                     "company": {
                       "name": "Stripe, Inc.",
                       "emails": ["support@stripe.com"],
-                      "addresses": ["354 Oyster Point Blvd, South San Francisco, CA 94080"],
-                      "sources": ["jsonld", "footer"],
-                      "confidence": 0.92
+                      "addresses": ["354 Oyster Point Blvd, South San Francisco, CA 94080"]
                     }
                   },
                   "meta": {
@@ -629,8 +634,9 @@
           "400": { "description": "Invalid or missing URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "401": { "description": "Missing or invalid API key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "403": { "description": "Revoked key, expired key, credit limit, or blocklisted URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "422": { "description": "URL hostname could not be resolved.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "429": { "description": "Rate limit exceeded.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "500": { "description": "Extraction failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "503": { "description": "Service temporarily busy — retry shortly.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "504": { "description": "Request timed out.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
         }
       }
@@ -639,7 +645,7 @@
       "get": {
         "operationId": "takeScreenshot",
         "summary": "Take a screenshot",
-        "description": "Captures a screenshot of a webpage and returns a public URL to the image stored in cloud storage. Costs **1 credit**.",
+        "description": "Captures a screenshot of a webpage and returns a public URL to the image stored in cloud storage. **Credit cost: 2.**",
         "tags": ["Endpoints"],
         "parameters": [
           { "$ref": "#/components/parameters/url" },
@@ -670,7 +676,7 @@
                     "viewport": { "width": 1440, "height": 900 },
                     "format": "jpeg",
                     "full_page": false,
-                    "captured_at": "2026-03-19T14:22:05.000Z"
+                    "captured_at": "2026-05-14T10:00:00.000Z"
                   },
                   "meta": {
                     "requestId": "c1d2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f",
@@ -683,8 +689,9 @@
           "400": { "description": "Invalid URL or parameters.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "401": { "description": "Missing or invalid API key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "403": { "description": "Revoked key, expired key, credit limit, or blocklisted URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "422": { "description": "URL hostname could not be resolved.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "429": { "description": "Rate limit exceeded.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "500": { "description": "Screenshot failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "503": { "description": "Service temporarily busy — retry shortly.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "504": { "description": "Request timed out.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
         }
       }
@@ -693,7 +700,7 @@
       "get": {
         "operationId": "getBrand",
         "summary": "Extract brand assets",
-        "description": "Extracts brand colors, logos, fonts, images, and social media links from a website. Costs **2 credits**.",
+        "description": "Extracts brand colors, logos, fonts, images, and social media links from a website. A screenshot is always captured. **Credit cost: 10.**",
         "tags": ["Endpoints"],
         "parameters": [
           { "$ref": "#/components/parameters/url" },
@@ -708,27 +715,65 @@
             "name": "css",
             "in": "query",
             "required": false,
-            "description": "Extract colors defined in CSS source code. Default: `false`.",
+            "description": "Extract colors from linked CSS files. Pass `true` to enable.",
             "schema": { "type": "boolean", "default": false }
           },
           {
             "name": "html",
             "in": "query",
             "required": false,
-            "description": "Extract colors defined in HTML attributes. Default: `false`.",
+            "description": "Extract colors from inline HTML. Pass `true` to enable.",
             "schema": { "type": "boolean", "default": false }
           },
           {
             "name": "javascript",
             "in": "query",
             "required": false,
-            "description": "Extract colors defined in JavaScript source code. Default: `false`.",
+            "description": "Extract colors from linked JS files. Pass `true` to enable.",
             "schema": { "type": "boolean", "default": false }
           },
-          { "$ref": "#/components/parameters/screenshotWidth" },
-          { "$ref": "#/components/parameters/screenshotHeight" },
-          { "$ref": "#/components/parameters/screenshotFormat" },
-          { "$ref": "#/components/parameters/screenshotFullPage" }
+          {
+            "name": "screenshotWidth",
+            "in": "query",
+            "required": false,
+            "description": "Viewport width in pixels. Range: 320–3000. Default: 1440.",
+            "schema": { "type": "integer", "minimum": 320, "maximum": 3000, "default": 1440 }
+          },
+          {
+            "name": "screenshotHeight",
+            "in": "query",
+            "required": false,
+            "description": "Viewport height in pixels. Range: 320–3000. Default: 900.",
+            "schema": { "type": "integer", "minimum": 320, "maximum": 3000, "default": 900 }
+          },
+          {
+            "name": "screenshotFormat",
+            "in": "query",
+            "required": false,
+            "description": "Screenshot format. Default: `jpeg`.",
+            "schema": { "type": "string", "enum": ["jpeg", "png", "pdf"], "default": "jpeg" }
+          },
+          {
+            "name": "screenshotFullPage",
+            "in": "query",
+            "required": false,
+            "description": "Capture the full scrollable page. Pass `true` to enable.",
+            "schema": { "type": "boolean", "default": false }
+          },
+          {
+            "name": "disableAdblocker",
+            "in": "query",
+            "required": false,
+            "description": "Disable the built-in adblocker. Pass `true` to enable (useful for sites that detect ad blockers).",
+            "schema": { "type": "boolean", "default": false }
+          },
+          {
+            "name": "filterAchromatic",
+            "in": "query",
+            "required": false,
+            "description": "Exclude near-white, near-black, and greyscale colors from results. Pass `true` to enable.",
+            "schema": { "type": "boolean", "default": false }
+          }
         ],
         "responses": {
           "200": {
@@ -750,8 +795,9 @@
           "400": { "description": "Invalid URL or parameters.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "401": { "description": "Missing or invalid API key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "403": { "description": "Revoked key, expired key, credit limit, or blocklisted URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "422": { "description": "URL hostname could not be resolved.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "429": { "description": "Rate limit exceeded.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "500": { "description": "Extraction failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "503": { "description": "Service temporarily busy — retry shortly.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "504": { "description": "Request timed out.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
         }
       }
@@ -760,7 +806,7 @@
       "get": {
         "operationId": "enrichUrl",
         "summary": "Enrich a URL",
-        "description": "Runs brand extraction, company info extraction, and website classification in parallel and returns all results in a single response. Costs **3 credits**.\n\nThis is the most comprehensive endpoint — equivalent to calling `/brand`, `/company`, and `/classify` together.",
+        "description": "Runs brand extraction, company info extraction, and website classification in parallel and returns all results in a single response. **Credit cost: 20.**\n\nThis is the most comprehensive endpoint — equivalent to calling `/brand`, `/company`, and `/classify` together but more efficient because the page is only loaded once.",
         "tags": ["Endpoints"],
         "parameters": [
           { "$ref": "#/components/parameters/url" },
@@ -775,27 +821,65 @@
             "name": "css",
             "in": "query",
             "required": false,
-            "description": "Extract colors from CSS source code. Default: `false`.",
+            "description": "Extract colors from linked CSS files. Pass `true` to enable.",
             "schema": { "type": "boolean", "default": false }
           },
           {
             "name": "html",
             "in": "query",
             "required": false,
-            "description": "Extract colors from HTML source code. Default: `false`.",
+            "description": "Extract colors from inline HTML. Pass `true` to enable.",
             "schema": { "type": "boolean", "default": false }
           },
           {
             "name": "javascript",
             "in": "query",
             "required": false,
-            "description": "Extract colors from JavaScript source code. Default: `false`.",
+            "description": "Extract colors from linked JS files. Pass `true` to enable.",
             "schema": { "type": "boolean", "default": false }
           },
-          { "$ref": "#/components/parameters/screenshotWidth" },
-          { "$ref": "#/components/parameters/screenshotHeight" },
-          { "$ref": "#/components/parameters/screenshotFormat" },
-          { "$ref": "#/components/parameters/screenshotFullPage" }
+          {
+            "name": "screenshotWidth",
+            "in": "query",
+            "required": false,
+            "description": "Viewport width in pixels. Range: 320–3000. Default: 1440.",
+            "schema": { "type": "integer", "minimum": 320, "maximum": 3000, "default": 1440 }
+          },
+          {
+            "name": "screenshotHeight",
+            "in": "query",
+            "required": false,
+            "description": "Viewport height in pixels. Range: 320–3000. Default: 900.",
+            "schema": { "type": "integer", "minimum": 320, "maximum": 3000, "default": 900 }
+          },
+          {
+            "name": "screenshotFormat",
+            "in": "query",
+            "required": false,
+            "description": "Screenshot format. Default: `jpeg`.",
+            "schema": { "type": "string", "enum": ["jpeg", "png", "pdf"], "default": "jpeg" }
+          },
+          {
+            "name": "screenshotFullPage",
+            "in": "query",
+            "required": false,
+            "description": "Capture the full scrollable page. Pass `true` to enable.",
+            "schema": { "type": "boolean", "default": false }
+          },
+          {
+            "name": "disableAdblocker",
+            "in": "query",
+            "required": false,
+            "description": "Disable the built-in adblocker. Pass `true` to enable.",
+            "schema": { "type": "boolean", "default": false }
+          },
+          {
+            "name": "filterAchromatic",
+            "in": "query",
+            "required": false,
+            "description": "Exclude near-white, near-black, and greyscale colors from results. Pass `true` to enable.",
+            "schema": { "type": "boolean", "default": false }
+          }
         ],
         "responses": {
           "200": {
@@ -817,8 +901,9 @@
           "400": { "description": "Invalid URL or parameters.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "401": { "description": "Missing or invalid API key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "403": { "description": "Revoked key, expired key, credit limit, or blocklisted URL.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "422": { "description": "URL hostname could not be resolved.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "429": { "description": "Rate limit exceeded.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "500": { "description": "Extraction failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "503": { "description": "Service temporarily busy — retry shortly.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "504": { "description": "Request timed out.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
         }
       }

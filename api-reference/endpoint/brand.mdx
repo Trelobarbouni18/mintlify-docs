@@ -1,6 +1,6 @@
 ---
 title: "GET /brand"
-description: "Extract brand colors, logos, fonts, images, and social media links from any website. Costs 2 credits."
+description: "Extract brand colors, logos, fonts, images, and social media links from any website. Costs 10 credits."
 openapi: "GET /brand"
 ---
 
@@ -8,21 +8,22 @@ openapi: "GET /brand"
 
 `/brand` uses headless Chrome to visit a page and extract a comprehensive set of brand assets:
 
-- **Colors** — extracted from the logo via pixel analysis, optionally from the screenshot and source code
-- **Logos** — primary and secondary candidates scored by confidence
-- **Fonts** — font family names including Google Fonts and Typekit
-- **Images** — OG image, Twitter card image, screenshot
-- **Social links** — Twitter/X, LinkedIn, GitHub, Facebook, Instagram, YouTube
+- **Colors** — extracted from the logo, optionally from the screenshot and source code
+- **Logos** — primary logo URL with dimensions, plus secondary candidates and favicon
+- **Fonts** — font family names detected on the page
+- **Images** — OG image, Twitter card image, screenshot URL
+- **Social links** — keyed by platform (twitter, linkedin, github, etc.)
 
 ## Color extraction options
 
 | Parameter | What it extracts |
 |---|---|
-| *(default)* | Logo colors only |
+| *(default)* | Logo colors (`brand_colors`) only |
 | `screenshotColors=6` | + N dominant colors from the page screenshot |
 | `css=true` | + Colors defined in CSS stylesheets |
 | `html=true` | + Colors defined in HTML attributes |
 | `javascript=true` | + Colors defined in JavaScript source |
+| `filterAchromatic=true` | Exclude near-white, near-black, and greyscale results |
 
 You can combine any of these.
 
@@ -41,7 +42,7 @@ curl "https://api.prefetch.io/brand?url=https://stripe.com&screenshotColors=6" \
 ```
 
 ```bash Full color extraction
-curl "https://api.prefetch.io/brand?url=https://stripe.com&screenshotColors=8&css=true&html=true" \
+curl "https://api.prefetch.io/brand?url=https://stripe.com&screenshotColors=8&css=true&html=true&filterAchromatic=true" \
   -H "X-API-Key: $PREFETCH_API_KEY"
 ```
 
@@ -68,42 +69,22 @@ console.log(data.fonts.families);
     "url": "https://stripe.com",
     "colors": {
       "brand_colors": [
-        {
-          "color": "rgb(99,91,255)",
-          "hex": "#635BFF",
-          "name": "blueviolet",
-          "percentage": 38,
-          "source": "logo"
-        },
-        {
-          "color": "rgb(0,212,255)",
-          "hex": "#00D4FF",
-          "name": "cyan",
-          "percentage": 24,
-          "source": "logo"
-        }
+        { "hex": "#635BFF", "name": "blueviolet" },
+        { "hex": "#00D4FF", "name": "cyan" }
       ],
       "screenshot_colors": [
-        {
-          "color": "rgb(255,255,255)",
-          "hex": "#FFFFFF",
-          "name": "white",
-          "percentage": 61,
-          "source": "screenshot"
-        }
+        { "hex": "#FFFFFF", "name": "white" },
+        { "hex": "#0A2540", "name": "darkblue" }
       ]
     },
     "fonts": {
-      "families": ["Sohne", "Inter"],
-      "google_fonts": [],
-      "typekit": []
+      "families": ["Sohne", "Inter"]
     },
     "logos": {
       "primary": {
         "url": "https://assets.prefetch.io/logos/stripe-logo.svg",
-        "source": "jsonld",
-        "score": 185,
-        "isSvg": true
+        "width": null,
+        "height": null
       },
       "secondary": [],
       "favicon_url": "https://stripe.com/favicon.ico",
@@ -113,25 +94,11 @@ console.log(data.fonts.families);
     "images": {
       "og_image": "https://stripe.com/img/v3/home/social.png",
       "twitter_image": "https://stripe.com/img/v3/home/social.png",
-      "assets": [],
-      "screenshot_url": "https://assets.prefetch.io/screenshots/stripe-1440x900.jpg",
-      "screenshot_colors": [
-        {
-          "color": "rgb(255,255,255)",
-          "hex": "#FFFFFF",
-          "name": "white",
-          "percentage": 61,
-          "source": "screenshot"
-        }
-      ]
+      "screenshot_url": "https://assets.prefetch.io/screenshots/stripe-1440x900.jpg"
     },
     "social_links": {
       "twitter": "https://twitter.com/stripe",
-      "linkedin": "https://linkedin.com/company/stripe",
-      "github": "https://github.com/stripe",
-      "facebook": null,
-      "instagram": null,
-      "youtube": null
+      "linkedin": "https://linkedin.com/company/stripe"
     }
   },
   "meta": {

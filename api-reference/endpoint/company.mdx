@@ -1,6 +1,6 @@
 ---
 title: "GET /company"
-description: "Extract legal company name, contact emails, and physical addresses from a website. Costs 2 credits."
+description: "Extract legal company name, contact emails, and physical addresses from a website. Costs 5 credits."
 openapi: "GET /company"
 ---
 
@@ -11,8 +11,6 @@ openapi: "GET /company"
 - **Company name** — legal entity name (e.g. "Stripe, Inc.")
 - **Emails** — contact and support email addresses
 - **Addresses** — physical locations including street, city, state, ZIP, country
-- **Sources** — where the data was found (`jsonld`, `footer`, `contact`, etc.)
-- **Confidence** — extraction confidence score (0–1)
 
 This endpoint uses a hybrid approach: it first attempts a fast static fetch, falling back to headless Chrome only when needed.
 
@@ -45,7 +43,7 @@ r = requests.get(
 )
 company = r.json()["data"]["company"]
 print(company["name"])
-print(company["confidence"])
+print(company["addresses"])
 ```
 
 </CodeGroup>
@@ -65,9 +63,7 @@ print(company["confidence"])
       ],
       "addresses": [
         "354 Oyster Point Blvd, South San Francisco, CA 94080"
-      ],
-      "sources": ["jsonld", "footer"],
-      "confidence": 0.92
+      ]
     }
   },
   "meta": {
@@ -76,17 +72,3 @@ print(company["confidence"])
   }
 }
 ```
-
-## Understanding confidence
-
-The `confidence` score reflects how reliably the data was extracted:
-
-| Range | Meaning |
-|---|---|
-| `0.8 – 1.0` | High confidence — data from structured sources (JSON-LD, schema.org) |
-| `0.5 – 0.79` | Medium confidence — data inferred from footer, about page |
-| `0.0 – 0.49` | Low confidence — best guess from unstructured content |
-
-<Note>
-A low confidence score doesn't mean the data is wrong — it means you may want to verify it. Sites without structured data will generally score lower.
-</Note>

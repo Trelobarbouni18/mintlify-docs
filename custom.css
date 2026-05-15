@@ -25,19 +25,24 @@ html.dark main {
 }
 
 /* ── Feature cards (the content cards, not sidebar nav) ───────── */
-/* Light + dark mode — cream background, invisible border by default */
+/* Light mode — cream background, invisible border */
 a[class*="rounded"][class*="border"],
 a[class*="group"][class*="border"],
-div[class*="rounded"][class*="border"][role="link"],
-.dark a[class*="rounded"][class*="border"],
-.dark a[class*="group"][class*="border"],
-.dark div[class*="rounded"][class*="border"][role="link"] {
+div[class*="rounded"][class*="border"][role="link"] {
   background-color: var(--color-cream) !important;
   border-color: var(--color-cream) !important;
   transition: border-color 0.15s ease !important;
 }
+/* Dark mode — deep plum background, invisible border */
+.dark a[class*="rounded"][class*="border"],
+.dark a[class*="group"][class*="border"],
+.dark div[class*="rounded"][class*="border"][role="link"] {
+  background-color: rgb(48, 23, 42) !important;
+  border-color: rgb(48, 23, 42) !important;
+  transition: border-color 0.15s ease !important;
+}
 
-/* Hover — amber border */
+/* Hover — amber border (both modes) */
 a[class*="rounded"][class*="border"]:hover,
 a[class*="group"][class*="border"]:hover,
 div[class*="rounded"][class*="border"][role="link"]:hover,
@@ -47,11 +52,23 @@ div[class*="rounded"][class*="border"][role="link"]:hover,
   border-color: var(--color-amber) !important;
 }
 
-/* Text accessibility — cream bg needs dark text in dark mode */
+/* Text accessibility — light mode: dark text on cream */
+a[class*="rounded"][class*="border"] h2,
+a[class*="group"][class*="border"] h2 {
+  color: #1a0618 !important;
+}
+a[class*="rounded"][class*="border"] p,
+a[class*="rounded"][class*="border"] [class*="prose"],
+a[class*="group"][class*="border"] p,
+a[class*="group"][class*="border"] [class*="prose"] {
+  color: #3c2533 !important;
+}
+
+/* Text accessibility — dark mode: light text on plum */
 .dark a[class*="rounded"][class*="border"] h2,
 .dark a[class*="group"][class*="border"] h2,
 .dark div[class*="rounded"][class*="border"][role="link"] h2 {
-  color: #1a0618 !important;
+  color: var(--color-cream) !important;
 }
 .dark a[class*="rounded"][class*="border"] p,
 .dark a[class*="rounded"][class*="border"] [class*="prose"],
@@ -59,9 +76,10 @@ div[class*="rounded"][class*="border"][role="link"]:hover,
 .dark a[class*="group"][class*="border"] [class*="prose"],
 .dark div[class*="rounded"][class*="border"][role="link"] p,
 .dark div[class*="rounded"][class*="border"][role="link"] [class*="prose"] {
-  color: #3c2533 !important;
+  color: var(--color-muted) !important;
 }
-/* Card icon — use dark color on cream bg */
+
+/* Card icon — amber on both modes */
 .dark a[class*="rounded"][class*="border"] [data-component-part="card-icon"] svg,
 .dark a[class*="group"][class*="border"] [data-component-part="card-icon"] svg {
   background-color: var(--color-amber) !important;

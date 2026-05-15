@@ -19,19 +19,46 @@ html.dark main {
 }
 
 /* ── Feature cards (the content cards, not sidebar nav) ───────── */
-/* Light mode */
+/* Light + dark mode — cream background, invisible border by default */
 a[class*="rounded"][class*="border"],
 a[class*="group"][class*="border"],
-div[class*="rounded"][class*="border"][role="link"] {
-  background-color: var(--color-cream) !important;
-  border-color: var(--color-cream) !important;
-}
-/* Dark mode */
+div[class*="rounded"][class*="border"][role="link"],
 .dark a[class*="rounded"][class*="border"],
 .dark a[class*="group"][class*="border"],
 .dark div[class*="rounded"][class*="border"][role="link"] {
   background-color: var(--color-cream) !important;
   border-color: var(--color-cream) !important;
+  transition: border-color 0.15s ease !important;
+}
+
+/* Hover — amber border */
+a[class*="rounded"][class*="border"]:hover,
+a[class*="group"][class*="border"]:hover,
+div[class*="rounded"][class*="border"][role="link"]:hover,
+.dark a[class*="rounded"][class*="border"]:hover,
+.dark a[class*="group"][class*="border"]:hover,
+.dark div[class*="rounded"][class*="border"][role="link"]:hover {
+  border-color: var(--color-amber) !important;
+}
+
+/* Text accessibility — cream bg needs dark text in dark mode */
+.dark a[class*="rounded"][class*="border"] h2,
+.dark a[class*="group"][class*="border"] h2,
+.dark div[class*="rounded"][class*="border"][role="link"] h2 {
+  color: #1a0618 !important;
+}
+.dark a[class*="rounded"][class*="border"] p,
+.dark a[class*="rounded"][class*="border"] [class*="prose"],
+.dark a[class*="group"][class*="border"] p,
+.dark a[class*="group"][class*="border"] [class*="prose"],
+.dark div[class*="rounded"][class*="border"][role="link"] p,
+.dark div[class*="rounded"][class*="border"][role="link"] [class*="prose"] {
+  color: #3c2533 !important;
+}
+/* Card icon — use dark color on cream bg */
+.dark a[class*="rounded"][class*="border"] [data-component-part="card-icon"] svg,
+.dark a[class*="group"][class*="border"] [data-component-part="card-icon"] svg {
+  background-color: var(--color-amber) !important;
 }
 
 /* ── Sticky fade gradient — match page background ─────────────── */

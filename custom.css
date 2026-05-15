@@ -82,13 +82,13 @@ div[class*="rounded"][class*="border"][role="link"]:hover,
 .dark [class*="rounded"][class*="border"] pre,
 .dark pre {
   background-color: var(--color-code) !important;
-  border-color: var(--color-cream) !important;
+  border-color: rgb(39, 39, 39) !important;
 }
 
 /* Outer wrapper div that wraps <pre> in Mintlify — dark */
 .dark div:has(> pre) {
   background-color: var(--color-code) !important;
-  border-color: var(--color-cream) !important;
+  border-color: rgb(39, 39, 39) !important;
 }
 
 /* ── Code block — light theme ─────────────────────────────────── */
@@ -96,7 +96,7 @@ div[class*="rounded"][class*="border"][role="link"]:hover,
 [class*="codeblock"],
 div:has(> pre) {
   background-color: var(--color-cream) !important;
-  border-color: var(--color-cream) !important;
+  border-color: rgb(39, 39, 39) !important;
 }
 pre {
   background-color: var(--color-cream) !important;

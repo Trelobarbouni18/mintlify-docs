@@ -1,0 +1,66 @@
+:root {
+  --color-bg: #1a0618;
+  --color-card: #3c2533;
+  --color-border: #4d1a43;
+  --color-secondary: #E5E2D3;
+  --color-amber: #F7B00A;
+  --color-amber-light: #ffc52e;
+  --color-pink: #FF6F91;
+  --color-pipe: #7b3a5a;
+  --color-muted: #a8899e;
+  --color-code: #1a0c14;
+  --bevel: inset 1px 1px 0 rgba(255,255,255,0.4), inset -1px -1px 0 rgba(0,0,0,0.4);
+}
+
+/* Cards */
+.dark [class*="card"],
+.dark [class*="Card"] {
+  background-color: var(--color-card);
+  border-color: var(--color-border);
+  box-shadow: var(--bevel);
+}
+
+/* Code blocks */
+.dark pre,
+.dark [class*="codeBlock"],
+.dark [class*="code-block"] {
+  background-color: var(--color-code) !important;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--bevel);
+}
+
+/* Callout / note boxes */
+.dark [class*="callout"],
+.dark [class*="Callout"],
+.dark [class*="note"],
+.dark [class*="tip"],
+.dark [class*="warning"] {
+  background-color: var(--color-card);
+  border-color: var(--color-border);
+  box-shadow: var(--bevel);
+}
+
+/* Muted text */
+.dark [class*="muted"],
+.dark [class*="description"],
+.dark [class*="subtitle"] {
+  color: var(--color-muted);
+}
+
+/* Amber accent on hover for links */
+.dark a:hover {
+  color: var(--color-amber-light);
+}
+
+/* Navbar border */
+.dark header,
+.dark nav {
+  border-bottom-color: var(--color-border);
+}
+
+/* Sidebar */
+.dark aside,
+.dark [class*="sidebar"],
+.dark [class*="Sidebar"] {
+  border-right-color: var(--color-border);
+}

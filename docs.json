@@ -3,11 +3,20 @@
   "theme": "mint",
   "name": "Prefetch API",
   "colors": {
-    "primary": "#18E299",
-    "light": "#1fffa8",
-    "dark": "#0C8C5E"
+    "primary": "#F7B00A",
+    "light": "#ffc52e",
+    "dark": "#F7B00A",
+    "background": {
+      "dark": "#1a0618"
+    }
   },
   "favicon": "/favicon.svg",
+  "font": {
+    "headings": { "family": "Space Grotesk" },
+    "body": { "family": "Inter" }
+  },
+  "codeFont": { "family": "Source Code Pro" },
+  "css": "/custom.css",
   "navigation": {
     "tabs": [
       {

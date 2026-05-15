@@ -1,4 +1,10 @@
 /* ── Page background ──────────────────────────────────────────── */
+html,
+html body,
+html #__next,
+html main {
+  background-color: rgb(229, 226, 211) !important;
+}
 html.dark,
 html.dark body,
 html.dark #__next,

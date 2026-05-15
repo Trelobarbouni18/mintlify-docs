@@ -64,19 +64,11 @@ a[class*="group"][class*="border"] [class*="prose"] {
   color: #3c2533 !important;
 }
 
-/* Text accessibility — dark mode: light text on plum */
+/* Text accessibility — dark mode: white title, natural description */
 .dark a[class*="rounded"][class*="border"] h2,
 .dark a[class*="group"][class*="border"] h2,
 .dark div[class*="rounded"][class*="border"][role="link"] h2 {
-  color: var(--color-cream) !important;
-}
-.dark a[class*="rounded"][class*="border"] p,
-.dark a[class*="rounded"][class*="border"] [class*="prose"],
-.dark a[class*="group"][class*="border"] p,
-.dark a[class*="group"][class*="border"] [class*="prose"],
-.dark div[class*="rounded"][class*="border"][role="link"] p,
-.dark div[class*="rounded"][class*="border"][role="link"] [class*="prose"] {
-  color: var(--color-muted) !important;
+  color: white !important;
 }
 
 /* Card icon — amber on both modes */

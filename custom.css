@@ -1,7 +1,8 @@
-.dark body,
-.dark [class*="layout"],
-.dark [class*="Layout"] {
-  background-color: #1a0618;
+html.dark,
+html.dark body,
+html.dark #__next,
+html.dark main {
+  background-color: #1a0618 !important;
 }
 
 :root {
@@ -15,7 +16,6 @@
   --color-pipe: #7b3a5a;
   --color-muted: #a8899e;
   --color-code: #1a0c14;
-  --bevel: inset 1px 1px 0 rgba(255,255,255,0.4), inset -1px -1px 0 rgba(0,0,0,0.4);
 }
 
 /* Cards */
@@ -23,7 +23,6 @@
 .dark [class*="Card"] {
   background-color: var(--color-card);
   border-color: var(--color-border);
-  box-shadow: var(--bevel);
 }
 
 /* Code blocks */
@@ -32,7 +31,6 @@
 .dark [class*="code-block"] {
   background-color: var(--color-code) !important;
   border: 1px solid var(--color-border);
-  box-shadow: var(--bevel);
 }
 
 /* Callout / note boxes */
@@ -43,7 +41,6 @@
 .dark [class*="warning"] {
   background-color: var(--color-card);
   border-color: var(--color-border);
-  box-shadow: var(--bevel);
 }
 
 /* Muted text */

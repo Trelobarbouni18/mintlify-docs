@@ -11,49 +11,40 @@ html.dark main {
   --color-bg: #1a0618;
   --color-card: #3c2533;
   --color-border: #4d1a43;
-  --color-secondary: #E5E2D3;
   --color-amber: #F7B00A;
   --color-amber-light: #ffc52e;
-  --color-pink: #FF6F91;
   --color-muted: #a8899e;
   --color-code: #1a0618;
 }
 
-/* ── Card GROUP containers — no background, no border ─────────── */
-/* Mintlify wraps CardGroup in a div with role="group" or a grid wrapper */
-.dark [class*="CardGroup"],
-.dark [class*="card-group"],
-.dark [class*="cardGroup"] {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* ── Individual cards ─────────────────────────────────────────── */
-.dark [class*="CardItem"],
-.dark [class*="card-item"],
-.dark a[class*="card"],
-.dark div[class*="card"]:not([class*="Group"]):not([class*="group"]) {
+/* ── Feature cards (the content cards, not sidebar nav) ───────── */
+/* Mintlify renders Card components as <a> tags with rounded borders */
+.dark a[class*="rounded"][class*="border"],
+.dark a[class*="group"][class*="border"] {
   background-color: var(--color-card) !important;
   border-color: var(--color-border) !important;
 }
 
-/* ── Code blocks ──────────────────────────────────────────────── */
-.dark pre,
-.dark code,
-.dark [class*="codeBlock"],
+/* ── Code block — both outer container and inner pre ──────────── */
+.dark [class*="CodeBlock"],
+.dark [class*="codeblock"],
 .dark [class*="code-block"],
-.dark [class*="CodeBlock"] {
+.dark [class*="rounded"][class*="border"] pre,
+.dark pre {
   background-color: var(--color-code) !important;
   border-color: var(--color-border) !important;
 }
 
-/* Replace Mintlify default dark greys on surfaces */
-.dark [class*="bg-gray"],
-.dark [class*="bg-zinc"],
-.dark [class*="bg-neutral"],
-.dark [class*="bg-slate"] {
+/* Outer wrapper div that wraps <pre> in Mintlify */
+.dark div:has(> pre) {
+  background-color: var(--color-code) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Inline code chips */
+.dark :not(pre) > code {
   background-color: var(--color-card) !important;
+  border-color: var(--color-border) !important;
 }
 
 /* ── Callouts ─────────────────────────────────────────────────── */
@@ -61,13 +52,6 @@ html.dark main {
 .dark [class*="Callout"] {
   background-color: var(--color-card) !important;
   border-color: var(--color-border) !important;
-}
-
-/* ── Muted / description text ─────────────────────────────────── */
-.dark [class*="muted"],
-.dark [class*="description"],
-.dark [class*="subtitle"] {
-  color: var(--color-muted);
 }
 
 /* ── Link hover ───────────────────────────────────────────────── */

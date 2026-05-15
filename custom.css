@@ -138,6 +138,11 @@ pre {
   color: var(--color-amber-light);
 }
 
+/* ── Opaque overlay (navbar scroll backdrop) ──────────────────── */
+.dark [data-is-opaque="true"] {
+  background-color: rgba(26, 6, 24, 0.75) !important;
+}
+
 /* ── Navbar / sidebar borders ─────────────────────────────────── */
 .dark header,
 .dark nav {

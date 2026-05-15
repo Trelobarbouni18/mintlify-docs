@@ -15,30 +15,58 @@ html.dark main {
   --color-amber-light: #ffc52e;
   --color-muted: #a8899e;
   --color-code: #1a0618;
+  --color-cream: rgb(229, 226, 211);
 }
 
 /* ── Feature cards (the content cards, not sidebar nav) ───────── */
-/* Mintlify renders Card components as <a> tags with rounded borders */
+/* Light mode */
+a[class*="rounded"][class*="border"],
+a[class*="group"][class*="border"],
+div[class*="rounded"][class*="border"][role="link"] {
+  background-color: var(--color-cream) !important;
+  border-color: var(--color-cream) !important;
+}
+/* Dark mode */
 .dark a[class*="rounded"][class*="border"],
-.dark a[class*="group"][class*="border"] {
-  background-color: var(--color-card) !important;
-  border-color: var(--color-border) !important;
+.dark a[class*="group"][class*="border"],
+.dark div[class*="rounded"][class*="border"][role="link"] {
+  background-color: var(--color-cream) !important;
+  border-color: var(--color-cream) !important;
 }
 
-/* ── Code block — both outer container and inner pre ──────────── */
+/* ── Sticky fade gradient — match page background ─────────────── */
+.dark .sticky.h-8[class*="bg-gradient"] {
+  background-image: linear-gradient(to bottom, #1a0618, transparent) !important;
+}
+.sticky.h-8[class*="bg-gradient"] {
+  background-image: linear-gradient(to bottom, rgb(229, 226, 211), transparent) !important;
+}
+
+/* ── Code block — dark theme ──────────────────────────────────── */
 .dark [class*="CodeBlock"],
 .dark [class*="codeblock"],
 .dark [class*="code-block"],
 .dark [class*="rounded"][class*="border"] pre,
 .dark pre {
   background-color: var(--color-code) !important;
-  border-color: var(--color-border) !important;
+  border-color: var(--color-cream) !important;
 }
 
-/* Outer wrapper div that wraps <pre> in Mintlify */
+/* Outer wrapper div that wraps <pre> in Mintlify — dark */
 .dark div:has(> pre) {
   background-color: var(--color-code) !important;
-  border-color: var(--color-border) !important;
+  border-color: var(--color-cream) !important;
+}
+
+/* ── Code block — light theme ─────────────────────────────────── */
+[class*="code-block"],
+[class*="codeblock"],
+div:has(> pre) {
+  background-color: var(--color-cream) !important;
+  border-color: var(--color-cream) !important;
+}
+pre {
+  background-color: var(--color-cream) !important;
 }
 
 /* Inline code chips */

@@ -3,7 +3,7 @@ html,
 html body,
 html #__next,
 html main {
-  background-color: rgb(229, 226, 211) !important;
+  background-color: rgb(252, 251, 246) !important;
 }
 html.dark,
 html.dark body,
@@ -25,20 +25,20 @@ html.dark main {
 }
 
 /* ── Feature cards (the content cards, not sidebar nav) ───────── */
-/* Light mode — cream background, invisible border */
+/* Light mode — card background, invisible border */
 a[class*="rounded"][class*="border"],
 a[class*="group"][class*="border"],
 div[class*="rounded"][class*="border"][role="link"] {
-  background-color: var(--color-cream) !important;
-  border-color: var(--color-cream) !important;
+  background-color: rgb(244, 242, 232) !important;
+  border-color: rgb(244, 242, 232) !important;
   transition: border-color 0.15s ease !important;
 }
-/* Dark mode — deep plum background, invisible border */
+/* Dark mode — deep plum background */
 .dark a[class*="rounded"][class*="border"],
 .dark a[class*="group"][class*="border"],
 .dark div[class*="rounded"][class*="border"][role="link"] {
   background-color: rgb(48, 23, 42) !important;
-  border-color: rgb(48, 23, 42) !important;
+  border-color: rgb(78, 59, 74) !important;
   transition: border-color 0.15s ease !important;
 }
 
@@ -90,7 +90,7 @@ a[class*="group"][class*="border"] [class*="prose"] {
   background-image: linear-gradient(to bottom, #1a0618, transparent) !important;
 }
 .sticky.h-8[class*="bg-gradient"] {
-  background-image: linear-gradient(to bottom, rgb(229, 226, 211), transparent) !important;
+  background-image: linear-gradient(to bottom, rgb(252, 251, 246), transparent) !important;
 }
 
 /* ── Code block — dark theme ──────────────────────────────────── */

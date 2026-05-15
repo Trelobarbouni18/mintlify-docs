@@ -1,3 +1,9 @@
+.dark body,
+.dark [class*="layout"],
+.dark [class*="Layout"] {
+  background-color: #1a0618;
+}
+
 :root {
   --color-bg: #1a0618;
   --color-card: #3c2533;

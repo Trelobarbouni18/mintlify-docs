@@ -6,22 +6,23 @@ icon: "gauge-high"
 
 ## Overview
 
-Prefetch API enforces two independent rate limits:
+Prefetch API enforces three independent limits:
 
-1. **Global rate limit** — per IP address, applies to all requests
-2. **Per-key rate limit** — per API key, configurable per key
+1. **Global rate limit** — per IP address, fixed 1-minute window
+2. **Per-key rate limit** — per API key, sliding 1-minute window
+3. **Per-key concurrency limit** — max in-flight requests per key at once
 
-Both use a sliding 1-minute window. When either limit is exceeded, you receive HTTP `429 Too Many Requests`.
+When any limit is exceeded, you receive HTTP `429 Too Many Requests`.
 
 ## Global rate limit
 
-**300 requests per minute per IP address.**
+**300 requests per minute per IP address**, using a fixed 1-minute window.
 
 This limit applies before authentication and cannot be configured. It protects the infrastructure from abuse.
 
 ## Per-key rate limit
 
-Each API key has a `rate_limit_rpm` (requests per minute) field. When a key's request rate exceeds this value within a 60-second window, requests fail with:
+Each API key has a `rate_limit_rpm` (requests per minute) field, enforced with a sliding 60-second window. When a key's request rate exceeds this value, requests fail with:
 
 ```json
 {
@@ -32,6 +33,23 @@ Each API key has a `rate_limit_rpm` (requests per minute) field. When a key's re
 ```
 
 Contact support or manage your key's rate limit from the [dashboard](https://dashboard.prefetch.io).
+
+## Per-key concurrency limit
+
+Separate from the RPM limit, each key has a maximum number of requests that can be in-flight simultaneously. Exceeding it returns `429` immediately (no queueing). Two headers indicate your current usage:
+
+| Header | Description |
+|---|---|
+| `X-Concurrency-Limit` | Maximum concurrent requests allowed for this key |
+| `X-Concurrency-Running` | Number of requests currently in-flight |
+
+```json
+{
+  "success": false,
+  "error": "Concurrency limit exceeded for this API key",
+  "meta": { ... }
+}
+```
 
 ## Handling 429 responses
 

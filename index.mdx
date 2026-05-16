@@ -1,13 +1,25 @@
 ---
 title: "Prefetch API"
-description: "A high-performance web scraping and data extraction API. Extract brand assets, company info, classifications, and screenshots from any website."
+description: "Extract brand assets, company info, classifications, and screenshots from any website."
+mode: "frame"
 ---
 
-## What you can do
+<div style={{ textAlign: 'center', padding: '3rem 0 2.5rem' }}>
+  <h1 style={{ fontSize: '3rem', fontWeight: '700', letterSpacing: '-0.02em', marginBottom: '1rem', color: 'white' }}>Documentation</h1>
+  <p style={{ fontSize: '1.125rem', color: 'rgb(120, 110, 130)', maxWidth: '520px', margin: '0 auto', lineHeight: '1.7' }}>Extract brand assets, company info, classifications, and screenshots from any website.</p>
+</div>
 
-Prefetch API lets you enrich any URL with structured data — all powered by headless Chrome for accuracy on JavaScript-heavy sites.
+<Card
+  title="Quickstart"
+  icon="rocket"
+  href="/quickstart"
+>
+  Make your first API call in under 5 minutes.
+</Card>
 
-<Columns cols={2}>
+<p style={{ fontSize: '1.25rem', fontWeight: '600', letterSpacing: '0.1em', color: 'rgb(255, 255, 255)', marginBottom: '1rem', marginTop: '2rem' }}>Endpoints</p>
+
+<CardGroup cols={2}>
   <Card
     title="Brand extraction"
     icon="palette"
@@ -36,60 +48,4 @@ Prefetch API lets you enrich any URL with structured data — all powered by hea
   >
     Full-page or viewport captures in JPEG, PNG, or WebP.
   </Card>
-</Columns>
-
-## Get started
-
-<Card
-  title="Quickstart"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Make your first API call in under 5 minutes.
-</Card>
-
-## Core concepts
-
-<Columns cols={2}>
-  <Card
-    title="Authentication"
-    icon="key"
-    href="/concepts/authentication"
-  >
-    API key setup and the `X-API-Key` header.
-  </Card>
-  <Card
-    title="Credits"
-    icon="coins"
-    href="/concepts/credits"
-  >
-    Each endpoint has a credit cost. Understand how billing works.
-  </Card>
-  <Card
-    title="Rate limits"
-    icon="gauge-high"
-    href="/concepts/rate-limits"
-  >
-    Global and per-key rate limiting explained.
-  </Card>
-  <Card
-    title="Error handling"
-    icon="circle-exclamation"
-    href="/concepts/errors"
-  >
-    Standard error envelope and status codes.
-  </Card>
-</Columns>
-
-## All endpoints at a glance
-
-| Endpoint | Credit cost | What it returns |
-|---|---|---|
-| [`GET /enrich`](/api-reference/endpoint/enrich) | 20 | Brand + company + classification combined |
-| [`GET /brand`](/api-reference/endpoint/brand) | 10 | Colors, logos, fonts, social links |
-| [`GET /company`](/api-reference/endpoint/company) | 5 | Company name, emails, addresses |
-| [`GET /classify`](/api-reference/endpoint/classify) | 5 | IAB category, descriptions, tickers, ISINs |
-| [`GET /screenshot`](/api-reference/endpoint/screenshot) | 2 | Webpage screenshot URL |
-| [`GET /health`](/api-reference/endpoint/health) | — | Liveness check |
-| [`GET /ready`](/api-reference/endpoint/ready) | — | Readiness check (Redis connectivity) |
+</CardGroup>

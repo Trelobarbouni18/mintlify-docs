@@ -40,8 +40,11 @@ if (!success) {
 | `400` | Validation error | Invalid or missing `url`, bad parameter values |
 | `401` | Unauthorized | No `X-API-Key` header provided |
 | `403` | Forbidden | Invalid key, revoked key, expired key, credit limit exceeded, blocklisted URL |
-| `429` | Rate limited | Global (300/min per IP) or per-key rate limit exceeded |
+| `422` | Unresolvable | URL hostname could not be resolved (DNS failure) |
+| `429` | Rate limited | Global (300/min per IP), per-key RPM, or concurrency limit exceeded |
 | `500` | Server error | Page not accessible, extraction failed, internal error |
+| `502` | Bad gateway | Connection refused to target URL, or SSL certificate invalid |
+| `503` | Unavailable | Queue is backed up, service temporarily overloaded |
 | `504` | Timeout | Request exceeded the 55-second processing limit |
 
 ## Error messages
@@ -68,12 +71,27 @@ if (!success) {
 | `"Credit limit exceeded"` | Key exhausted its credit allocation |
 | `"URL is blocklisted for this API key"` | URL is on the key's blocklist |
 
+### DNS errors (422)
+
+| Message | Cause |
+|---|---|
+| `"Could not resolve hostname"` | URL hostname failed DNS lookup |
+
 ### Rate limit errors (429)
 
 | Message | Cause |
 |---|---|
 | `"Too many requests"` | Global IP rate limit (300/min) exceeded |
 | `"Rate limit exceeded for this API key"` | Per-key RPM limit exceeded |
+| `"Concurrency limit exceeded for this API key"` | Too many in-flight requests for this key |
+
+### Gateway errors (502 / 503)
+
+| Message | Cause |
+|---|---|
+| `"Connection refused"` | Target URL actively refused the connection |
+| `"SSL certificate error"` | Target URL has an invalid or expired SSL certificate |
+| `"Service temporarily unavailable"` | Request queue is backed up; retry shortly |
 
 ### Server errors (500 / 504)
 
@@ -99,6 +117,9 @@ Requests to blocked URLs return `403 Forbidden` with `"URL is blocklisted for th
 |---|---|---|
 | `400` | No | Fix the request parameters |
 | `401` / `403` | No | Fix authentication or credits |
+| `422` | No | The hostname doesn't exist; fix the URL |
 | `429` | Yes | Exponential backoff — see [Rate limits](/concepts/rate-limits) |
 | `500` | Maybe | Retry once after a short delay; some pages are intermittently unavailable |
+| `502` | Maybe | Target site connection issue; retry once |
+| `503` | Yes | Service overloaded; retry with backoff |
 | `504` | Maybe | The target site may have been slow; retry once |

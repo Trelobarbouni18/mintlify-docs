@@ -1,6 +1,10 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
+  "appearance": {
+    "default": "dark",
+    "strict": true
+  },
   "name": "Prefetch API",
   "colors": {
     "primary": "#F7B00A",
@@ -17,14 +21,14 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Home",
+        "icon": "house",
         "groups": [
           {
             "group": "Getting started",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "quickstart"
             ]
           },
           {
@@ -40,6 +44,7 @@
       },
       {
         "tab": "API Reference",
+        "icon": "rectangle-terminal",
         "groups": [
           {
             "group": "Overview",
@@ -54,22 +59,13 @@
               "api-reference/endpoint/classify",
               "api-reference/endpoint/company",
               "api-reference/endpoint/screenshot",
-              "api-reference/endpoint/enrich",
-              "api-reference/endpoint/health",
-              "api-reference/endpoint/ready"
+              "api-reference/endpoint/enrich"
             ]
           }
         ]
       }
     ],
     "global": {
-      "anchors": [
-        {
-          "anchor": "API Reference",
-          "href": "/api-reference/introduction",
-          "icon": "rectangle-terminal"
-        }
-      ]
     }
   },
   "logo": {
@@ -79,8 +75,8 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:support@prefetch.io"
+        "label": "Dashboard",
+        "href": "https://prefetch.io/dashboard"
       }
     ],
     "primary": {
@@ -91,10 +87,10 @@
   },
   "contextual": {
     "options": [
+      "claude",
       "copy",
       "view",
       "chatgpt",
-      "claude",
       "perplexity",
       "cursor",
       "vscode"
@@ -102,8 +98,6 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/prefetchapi",
-      "github": "https://github.com/prefetchapi"
     }
   }
 }
